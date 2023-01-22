@@ -3,3 +3,5 @@ project(wakeonlan-api)
 
 set(CMAKE_CXX_STANDARD 17)
 add_definitions(-DWAKEONLAN_API_VERSION="0.0.0")
+
+add_subdirectory(modules/spdlog)
