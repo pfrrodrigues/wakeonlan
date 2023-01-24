@@ -5,3 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 add_definitions(-DWAKEONLAN_API_VERSION="0.0.0")
 
 add_subdirectory(modules/spdlog)
+
+file(GLOB WAKEONLAN_API_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
+file(GLOB_RECURSE WAKEONLAN_API_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*")
+
+# SHARED LIBRARY
+add_library(${PROJECT_NAME} SHARED ${WAKEONLAN_API_SOURCES} ${WAKEONLAN_API_HEADERS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+target_link_libraries(${PROJECT_NAME} pthread)
