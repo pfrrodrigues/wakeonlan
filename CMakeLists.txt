@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_definitions(-DWAKEONLAN_API_VERSION="0.0.0")
 
 add_subdirectory(modules/spdlog)
+include_directories(modules/spdlog/include)
 
 file(GLOB WAKEONLAN_API_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/*")
 file(GLOB_RECURSE WAKEONLAN_API_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*")
