@@ -1,3 +1,7 @@
 [submodule "modules/spdlog"]
 	path = modules/spdlog
 	url = git@github.com:gabime/spdlog.git
+
+[submodule "modules/tabulate"]
+	path = modules/tabulate
+	url = git@github.com:p-ranav/tabulate.git
