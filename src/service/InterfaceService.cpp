@@ -58,11 +58,12 @@ namespace WakeOnLanImpl {
                     .font_color(participants[i].status == Table::ParticipantStatus::Awaken ? tabulate::Color::green
                                                                                            : tabulate::Color::red) ;     
             }
-            std::cout << "\033[s"    // save cursor position (may not work. does not work in rxvt) 
-                      << "\033[0;0H" // sets cursor position to (1,0)
+            std::cout <<"\033[0;0H"  // sets cursor position to (0,0)
                       << display     // prints table
                       << std::endl   
-                      << "\033[u";   // restores saved cursor position (may not work)
+                      << std::endl
+                      << ">> ";
+            std::flush(std::cout);  
             sleep(REFRESH_RATE);
         }
     }
@@ -79,8 +80,14 @@ namespace WakeOnLanImpl {
         std::string cmd;
         while(true)
         {
-            std::cin >> cmd;
-            std::cout << cmd << '!' << std::endl;
+            std::cout << ">> ";
+            std::getline(std::cin, cmd);
+            std::cout << "\033[K"
+                      << "\033[2A"
+                      << "\033[K"
+                      << cmd 
+                      << '!' 
+                      << std::endl;
         }
     }
 }
