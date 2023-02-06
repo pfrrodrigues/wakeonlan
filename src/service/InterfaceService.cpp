@@ -77,18 +77,55 @@ namespace WakeOnLanImpl {
 
     void InterfaceService::run_command_listener()
     {
-        std::string cmd;
+        std::string cmd, response;
         while(true)
         {
             std::cout << ">> ";
             std::getline(std::cin, cmd);
-            std::cout << "\033[2A"
-                      << "\033[K"
-                      << cmd 
-                      << '!' 
-                      << std::endl
-                      << "\033[K";
+            response = parse_input(cmd);
+            std::cout << "\033[2A"  // moves cursor 2 lines up
+                      << "\033[K"   // clears line 
+                      << response   
+                      << std::endl 
+                      << "\033[K";  // clears previous input 
             std::flush(std::cout);
         }
+    }
+
+    std::string InterfaceService::parse_input(std::string cmd)
+    {
+        /*
+         * Missing handler integration if manager/client usage rules 
+         * are to be enforced.
+         * Also missing message integration for sending out 
+         * wakeup and exit messages.
+         */
+        std::string response;
+        std::vector<std::string> words;
+        int pos = 0, start = 0;
+        while ((pos = cmd.find(' ', start)) != std::string::npos)
+        {
+            words.push_back(cmd.substr(start, pos - start));
+            start = pos + 1;
+        }
+
+        if (words[0] == "exit" || words[0] == "EXIT")
+        {
+            response = "Exiting service...";
+            return response;
+        }
+        if (words[0] == "wakeup" || words[0] == "WAKEUP")
+        {
+            if(words.size() != 2)
+                return "Correct usage: WAKEUP <hostname>";
+            else 
+            {
+                // temporary.. waiting message integration
+                response = "Waking up " + words[1];
+                return response;
+            }
+        }
+        response = "Available commands: EXIT | WAKEUP <hostname>";
+        return response;
     }
 }
