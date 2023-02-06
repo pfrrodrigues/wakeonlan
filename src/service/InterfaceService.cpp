@@ -82,12 +82,13 @@ namespace WakeOnLanImpl {
         {
             std::cout << ">> ";
             std::getline(std::cin, cmd);
-            std::cout << "\033[K"
-                      << "\033[2A"
+            std::cout << "\033[2A"
                       << "\033[K"
                       << cmd 
                       << '!' 
-                      << std::endl;
+                      << std::endl
+                      << "\033[K";
+            std::flush(std::cout);
         }
     }
 }
