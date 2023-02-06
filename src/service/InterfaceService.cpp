@@ -58,12 +58,14 @@ namespace WakeOnLanImpl {
                     .font_color(participants[i].status == Table::ParticipantStatus::Awaken ? tabulate::Color::green
                                                                                            : tabulate::Color::red) ;     
             }
-            std::cout <<"\033[0;0H"  // sets cursor position to (0,0)
+            std::cout <<"\033[?25l"  // hides cursor
+                      <<"\033[0;0H"  // sets cursor position to (0,0)
                       << display     // prints table
-                      << std::endl   
                       << std::endl
-                      << ">> ";
+                      <<"\033[1B>> " // moves cursor 1 line down and draws "<< "
+                      <<"\033[?25h";
             std::flush(std::cout);  
+
             sleep(REFRESH_RATE);
         }
     }
@@ -114,7 +116,9 @@ namespace WakeOnLanImpl {
         word = cmd.substr(start);
         if (word.size() > 1)
             words.push_back(word);
-
+            
+        if (words.size() == 0)
+            return "";
         if (words[0] == "exit" || words[0] == "EXIT")
         {
             if(words.size() != 1)
