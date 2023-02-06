@@ -83,6 +83,13 @@ namespace WakeOnLanImpl {
         * @return A bool indicating the participant was deleted of the table with success.
         */
         bool remove(const std::string &hostname);
+
+        /**
+         * Gets all participants registered in the table.
+         * 
+         * @return A vector of registered participants.  
+         */
+        std::vector<Participant> get_participants();
     private:
         Table() = default;
 
