@@ -32,4 +32,12 @@ namespace WakeOnLanImpl {
                 returnCode = true;
         return returnCode;
     }
+    
+    std::vector<Table::Participant> Table::get_participants() {
+        std::vector<Table::Participant> participants;
+        std::lock_guard<std::mutex> lk(tableMutex);
+        for(auto&& [name, p] : data)
+            participants.push_back(p);
+        return participants;
+    }
 } // namespace WakeOnLanImpl
