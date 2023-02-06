@@ -100,17 +100,25 @@ namespace WakeOnLanImpl {
          * Also missing message integration for sending out 
          * wakeup and exit messages.
          */
-        std::string response;
+        std::string response, word;
         std::vector<std::string> words;
-        int pos = 0, start = 0;
-        while ((pos = cmd.find(' ', start)) != std::string::npos)
-        {
-            words.push_back(cmd.substr(start, pos - start));
+        int pos = cmd.find(' '), start = 0;
+        while (pos != std::string::npos)
+        {   
+            word = cmd.substr(start, pos - start);
+            if (word.size() > 1)
+                words.push_back(word);
             start = pos + 1;
+            pos = cmd.find(' ', start);
         }
+        word = cmd.substr(start);
+        if (word.size() > 1)
+            words.push_back(word);
 
         if (words[0] == "exit" || words[0] == "EXIT")
         {
+            if(words.size() != 1)
+                return "Correct usage: EXIT";
             response = "Exiting service...";
             return response;
         }
