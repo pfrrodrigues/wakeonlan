@@ -1,7 +1,6 @@
 #include <../src/service/InterfaceService.hpp>
 #include <iostream>
 #include <unistd.h>
-#include <ncurses.h>
 
 namespace WakeOnLanImpl {
     InterfaceService::InterfaceService(Table &table) : participantTable(table)
