@@ -59,6 +59,7 @@ namespace WakeOnLanImpl {
         std::shared_ptr<spdlog::logger> log;
         pthread_t threads[2];
         Table &participantTable;
+        int numParticipants;
     };
     
     

@@ -1,6 +1,7 @@
 #include <../src/service/InterfaceService.hpp>
 #include <iostream>
 #include <unistd.h>
+#include <ncurses.h>
 
 namespace WakeOnLanImpl {
     InterfaceService::InterfaceService(Table &table) : participantTable(table)
@@ -9,6 +10,8 @@ namespace WakeOnLanImpl {
 
     void InterfaceService::run()
     {
+        numParticipants = 0;
+
         int ret;
         ret = pthread_create(&threads[0], NULL, &start_display_table, this);
         ret = pthread_create(&threads[1], NULL, &start_command_listener, this);
@@ -44,8 +47,10 @@ namespace WakeOnLanImpl {
     {
         tabulate::Table display;
         std::cout << "\033[2J"; // clears terminal and moves cursor to (0,0)
+        int newParticipants;
         while (true)
         {
+            newParticipants = 0;
             std::vector<Table::Participant> participants = participantTable.get_participants();
             display = initialize_display_table();
             for (size_t i=0; i<participants.size(); i++)
@@ -55,17 +60,24 @@ namespace WakeOnLanImpl {
                                  participants[i].mac,
                                  participants[i].status == Table::ParticipantStatus::Awaken ? "AWAKE" : "ASLEEP"});
                 display[i+1][3].format()
-                    .font_color(participants[i].status == Table::ParticipantStatus::Awaken ? tabulate::Color::green
-                                                                                           : tabulate::Color::red) ;     
+                    .font_color(participants[i].status == 
+                                Table::ParticipantStatus::Awaken ? tabulate::Color::green
+                                                                 : tabulate::Color::red) ; 
+                newParticipants++;    
             }
+
             std::cout <<"\033[?25l"  // hides cursor
+                      <<"\033[s"     // saves cursor position
                       <<"\033[0;0H"  // sets cursor position to (0,0)
                       << display     // prints table
                       << std::endl
-                      <<"\033[1B>> " // moves cursor 1 line down and draws "<< "
-                      <<"\033[?25h";
+                      <<"\033[1B>> "; // moves cursor 1 line down and draws "<< "
+            if(newParticipants == numParticipants)
+                std::cout << "\033[u"; // returns cursor to saved position     
+            std::cout << "\033[?25h"; // shows cursor
             std::flush(std::cout);  
 
+            numParticipants = newParticipants;
             sleep(REFRESH_RATE);
         }
     }
