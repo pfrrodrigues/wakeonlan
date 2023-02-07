@@ -55,6 +55,8 @@ namespace WakeOnLanImpl {
         static void * start_command_listener(void * param);
         
         std::string parse_input(std::string cmd);
+        std::string process_wakeup_cmd(std::string hostname);
+        std::string process_exit_cmd();
 
         std::shared_ptr<spdlog::logger> log;
         pthread_t threads[2];

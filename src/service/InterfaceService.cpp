@@ -113,7 +113,7 @@ namespace WakeOnLanImpl {
          * Also missing message integration for sending out 
          * wakeup and exit messages.
          */
-        std::string response, word;
+        std::string word;
         std::vector<std::string> words;
         int pos = cmd.find(' '), start = 0;
         while (pos != std::string::npos)
@@ -134,7 +134,7 @@ namespace WakeOnLanImpl {
         {
             if(words.size() != 1)
                 return "Correct usage: EXIT";
-            response = "Exiting service...";
+            std::string response = process_exit_cmd(); 
             return response;
         }
         if (words[0] == "wakeup" || words[0] == "WAKEUP")
@@ -143,12 +143,39 @@ namespace WakeOnLanImpl {
                 return "Correct usage: WAKEUP <hostname>";
             else 
             {
-                // temporary.. waiting message integration
-                response = "Waking up " + words[1];
+                std::string response = process_wakeup_cmd(words[1]);
                 return response;
             }
         }
-        response = "Available commands: EXIT | WAKEUP <hostname>";
-        return response;
+        return "Available commands: EXIT | WAKEUP <hostname>";
+    }
+    
+    std::string InterfaceService::process_wakeup_cmd(std::string hostname)
+    {
+        /* waiting integration with network handler */
+        std::vector<Table::Participant> participants = participantTable.get_participants();
+
+        std::string mac;
+        bool hostnameFound = false; 
+        for (auto& participant : participants)
+            if(participant.hostname == hostname)
+            {
+                if(participant.status == Table::ParticipantStatus::Awaken)
+                    return hostname + " already awake.";
+                hostnameFound = true;
+                mac = participant.mac;
+                break;
+            }
+        if (!hostnameFound)
+            return hostname + " not found.";
+        
+        // send wakeup message to mac address
+        return "Waking up " + hostname + " @ " + mac + ".";
+    }
+
+    std::string InterfaceService::process_exit_cmd()
+    {
+        /* waiting integration with network handler */
+        return "Exiting service...";    
     }
 }
