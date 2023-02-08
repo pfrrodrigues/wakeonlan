@@ -15,3 +15,6 @@ add_library(${PROJECT_NAME} SHARED ${WAKEONLAN_API_SOURCES} ${WAKEONLAN_API_HEAD
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 target_link_libraries(${PROJECT_NAME} spdlog tabulate pthread)
+file(GLOB APP_FILES examples/App.cpp ${WAKEONLAN_API_HEADERS})
+add_executable(app ${APP_FILES})
+target_link_libraries(app ${PROJECT_NAME})
