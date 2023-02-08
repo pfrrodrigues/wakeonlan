@@ -25,7 +25,7 @@ namespace WakeOnLanImpl {
         destSockAddr.sin_family = AF_INET;
         destSockAddr.sin_port = htons(port);
         if (ip == BROADCAST_ADDRESS) {
-            destSockAddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+            destSockAddr.sin_addr.s_addr = INADDR_BROADCAST;
         }
         else if (ip == LOCAL_SERVER_ADDRESS) {
             destSockAddr.sin_addr.s_addr = INADDR_ANY;
@@ -38,9 +38,20 @@ namespace WakeOnLanImpl {
         sockaddr = destSockAddr;
     }
 
-    void UdpSocket::send(char *buffer, const size_t &size) {
+    void UdpSocket::sendMagicPacket(const char *buffer) {
         sendto(fd,
                buffer,
+               MAGIC_PACKET_SIZE,
+               MSG_CONFIRM,
+               (const struct sockaddr *) &sockaddr,
+               sizeof(sockaddr)
+        );
+    }
+
+    void UdpSocket::send(const Message &message) {
+        size_t size = sizeof(message);
+        sendto(fd,
+               &message,
                size,
                MSG_CONFIRM,
                (const struct sockaddr *) &sockaddr,
@@ -48,13 +59,14 @@ namespace WakeOnLanImpl {
         );
     }
 
-    void UdpSocket::receive(char *buffer) {
+    void UdpSocket::receive(Message *buffer) {
+        size_t msg_size = sizeof(Message);
         struct sockaddr_in client_addr{};
         uint32_t size = sizeof(client_addr);
         int n = recvfrom(fd,
-                         (char*)buffer,
-                         2048,
-                         0,
+                         buffer,
+                         msg_size,
+                         MSG_WAITALL,
                          (struct sockaddr *) &client_addr,
                          reinterpret_cast<socklen_t *>(&size));
         if (n < 0)

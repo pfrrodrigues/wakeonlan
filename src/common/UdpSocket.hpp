@@ -3,6 +3,9 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <../src/MessageTypes.hpp>
+
+#define MAGIC_PACKET_SIZE 102
 
 namespace WakeOnLanImpl {
     class UdpSocket {
@@ -11,9 +14,11 @@ namespace WakeOnLanImpl {
 
         ~UdpSocket() = default;
 
-        void send(char* buffer, const size_t &size);
+        void send(const Message &message);
 
-        void receive(char buffer[2048]);
+        void sendMagicPacket(const char buffer[MAGIC_PACKET_SIZE]);
+
+        void receive(Message *message);
 
         void closeSocket();
     private:
