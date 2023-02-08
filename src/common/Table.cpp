@@ -1,7 +1,11 @@
-#include <../src/common/Table.hpp>
+#include <condition_variable>
 #include <iostream>
+#include <../src/common/Table.hpp>
 
 namespace WakeOnLanImpl {
+    bool updated = false;
+    std::condition_variable cv;
+
     Table &Table::get() {
         static Table instance;
         return instance;
@@ -11,6 +15,10 @@ namespace WakeOnLanImpl {
         bool returnCode = false;
         std::lock_guard<std::mutex> lk(tableMutex);
         returnCode = data.insert(std::make_pair(participant.hostname, participant)).second;
+        if (returnCode) {
+            updated = true;
+            cv.notify_one();
+        }
         return returnCode;
     }
 
@@ -20,6 +28,8 @@ namespace WakeOnLanImpl {
         if (auto it = data.find(hostname); it != data.end()) {
             it->second.status = status;
             returnCode = true;
+            updated = true;
+            cv.notify_one();
         }
         return returnCode;
     }
@@ -28,16 +38,21 @@ namespace WakeOnLanImpl {
         bool returnCode = false;
         std::lock_guard<std::mutex> lk(tableMutex);
         if (data.count(hostname))
-            if (data.erase(hostname))
+            if (data.erase(hostname)) {
                 returnCode = true;
+                updated = true;
+                cv.notify_one();
+            }
         return returnCode;
     }
     
     std::vector<Table::Participant> Table::get_participants() {
         std::vector<Table::Participant> participants;
-        std::lock_guard<std::mutex> lk(tableMutex);
+        std::unique_lock<std::mutex> lk(tableMutex);
+        while (!updated) cv.wait(lk);
         for(auto&& [name, p] : data)
             participants.push_back(p);
+        updated = false;
         return participants;
     }
 } // namespace WakeOnLanImpl
