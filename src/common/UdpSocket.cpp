@@ -10,7 +10,7 @@ namespace WakeOnLanImpl {
         }
 
         u_int yes = 1;
-        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes)) == -1) {
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (char*)&yes, sizeof(yes)) == -1) {
             perror("setsockopt (SO_REUSEADDR)");
             exit(1);    // TODO: this must be handled
         }
