@@ -3,32 +3,65 @@
 #include <unistd.h>
 
 namespace WakeOnLanImpl {
+    // InterfaceService
     InterfaceService::InterfaceService(Table &table, std::shared_ptr<NetworkHandler> netHandler) 
         : participantTable(table)
     {
         networkHandler = netHandler;
     }
 
-    void InterfaceService::run()
+    void InterfaceService::stop()
     {
+        keepRunning = false;
+        for (auto thread : threads)
+            pthread_join(thread, NULL);
+    }
+
+    void InterfaceService::run() {}
+
+    std::vector<std::string> InterfaceService::splitCmd(std::string cmd)
+    {
+        std::string word;
+        std::vector<std::string> words;
+        int pos = cmd.find(' '), start = 0;
+        while (pos != std::string::npos)
+        {   
+            word = cmd.substr(start, pos - start);
+            if (word.size() > 1)
+                words.push_back(word);
+            start = pos + 1;
+            pos = cmd.find(' ', start);
+        }
+        word = cmd.substr(start);
+        if (word.size() > 1)
+            words.push_back(word);
+        return words;
+    }
+
+    // ManagerInterfaceService
+
+    void ManagerInterfaceService::run()
+    {
+        keepRunning = true;
         numParticipants = 0;
+
+        pthread_t table_th, cmd_th;
+        threads.push_back(table_th);
+        threads.push_back(cmd_th);
 
         int ret;
         ret = pthread_create(&threads[0], NULL, &startDisplayTable, this);
         ret = pthread_create(&threads[1], NULL, &startCommandListener, this);
-
-        pthread_join(threads[0], NULL);
-        pthread_join(threads[1], NULL);
     }
 
-    void * InterfaceService::startDisplayTable(void * param)
+    void * ManagerInterfaceService::startDisplayTable(void * param)
     {
-        InterfaceService *obj = (InterfaceService *) param;
+        ManagerInterfaceService *obj = (ManagerInterfaceService *) param;
         obj->runDisplayTable();
         return NULL;
     }
 
-    tabulate::Table InterfaceService::initializeDisplayTable()
+    tabulate::Table ManagerInterfaceService::initializeDisplayTable()
     {
         tabulate::Table displayTable;
         // add header
@@ -44,12 +77,12 @@ namespace WakeOnLanImpl {
         return displayTable;
     }
 
-    void InterfaceService::runDisplayTable()
+    void ManagerInterfaceService::runDisplayTable()
     {
         tabulate::Table display;
         std::cout << "\033[2J"; // clears terminal and moves cursor to (0,0)
         int newNumParticipants;
-        while (true)
+        while (keepRunning)
         {
             newNumParticipants = 0;
             std::vector<Table::Participant> participants = participantTable.get_participants();
@@ -78,21 +111,21 @@ namespace WakeOnLanImpl {
             std::flush(std::cout);  
 
             numParticipants = newNumParticipants;
-            sleep(REFRESH_RATE);
+            sleep(DISPLAY_TABLE_REFRESH_RATE);
         }
     }
 
-    void * InterfaceService::startCommandListener(void * param)
+    void * ManagerInterfaceService::startCommandListener(void * param)
     {
-        InterfaceService *obj = (InterfaceService *) param;
+        ManagerInterfaceService *obj = (ManagerInterfaceService *) param;
         obj->runCommandListener();
         return NULL;
     }
 
-    void InterfaceService::runCommandListener()
+    void ManagerInterfaceService::runCommandListener()
     {
         std::string cmd, response;
-        while(true)
+        while(keepRunning)
         {
             std::cout << ">> ";
             std::getline(std::cin, cmd);
@@ -106,22 +139,11 @@ namespace WakeOnLanImpl {
         }
     }
 
-    std::string InterfaceService::parseInput(std::string cmd)
+    std::string ManagerInterfaceService::parseInput(std::string cmd)
     {
-        /*
-         * TODO: handler integration if manager/client usage rules 
-         * are to be enforced.
-         */
         std::vector<std::string> args = splitCmd(cmd);            
         if (args.size() == 0)
             return "";
-        if (args[0] == "exit" || args[0] == "EXIT")
-        {
-            if(args.size() != 1)
-                return "Correct usage: EXIT";
-            std::string response = processExitCmd(); 
-            return response;
-        }
         if (args[0] == "wakeup" || args[0] == "WAKEUP")
         {
             if(args.size() != 2)
@@ -129,29 +151,11 @@ namespace WakeOnLanImpl {
             std::string response = processWakeupCmd(args[1]);
             return response;
         }
-        return "Available commands: EXIT | WAKEUP <hostname>";
+        return "Available commands: WAKEUP <hostname>";
     }
 
-    std::vector<std::string> InterfaceService::splitCmd(std::string cmd)
-    {
-        std::string word;
-        std::vector<std::string> words;
-        int pos = cmd.find(' '), start = 0;
-        while (pos != std::string::npos)
-        {   
-            word = cmd.substr(start, pos - start);
-            if (word.size() > 1)
-                words.push_back(word);
-            start = pos + 1;
-            pos = cmd.find(' ', start);
-        }
-        word = cmd.substr(start);
-        if (word.size() > 1)
-            words.push_back(word);
-        return words;
-    }
     
-    std::string InterfaceService::processWakeupCmd(std::string hostname)
+    std::string ManagerInterfaceService::processWakeupCmd(std::string hostname)
     {
         std::vector<Table::Participant> participants = participantTable.get_participants();
 
@@ -173,9 +177,89 @@ namespace WakeOnLanImpl {
         return "Waking up " + hostname + " @ " + mac + ".";
     }
 
-    std::string InterfaceService::processExitCmd()
+    // ParticipantInterfaceService
+
+    void ParticipantInterfaceService::run()
     {
-        // TODO: integration with network handler
-        return "Exiting service...";    
+        keepRunning = true;
+
+        pthread_t cmd_th;
+        threads.push_back(cmd_th);
+
+        int ret;
+        ret = pthread_create(&threads[0], NULL, &startCommandListener, this);
+    }
+
+    void * ParticipantInterfaceService::startCommandListener(void * param)
+    {
+        ParticipantInterfaceService *obj = (ParticipantInterfaceService *) param;
+        obj->runCommandListener();
+        return NULL;
+    }
+
+    bool ParticipantInterfaceService::isConnected()
+    {
+        std::vector<Table::Participant> manager = participantTable.get_participants();
+        return manager.size() > 0;
+    }
+
+    void ParticipantInterfaceService::runCommandListener()
+    {
+        // wait connection
+        if(!isConnected())
+        {
+            std::cout << "\033[2J"
+                      << "Waiting connection to manager..."
+                      << std::endl;
+            while (!isConnected());
+                sleep(CONNECTION_CHECK_RATE);
+        }
+
+        // receive input
+        std::cout << "\033[2J" // clears terminal and moves cursor to (0,0)
+                  << "You are connected."
+                  << std::endl;         
+        std::string cmd, response;
+        while(keepRunning)
+        {
+            std::cout << ">> ";
+            std::getline(std::cin, cmd);
+            response = parseInput(cmd);
+            std::cout << "\033[2A"  // moves cursor 2 lines up
+                      << "\033[K"   // clears line 
+                      << response   
+                      << std::endl 
+                      << "\033[K";  // clears previous input 
+            std::flush(std::cout);
+        }
+    }
+
+    std::string ParticipantInterfaceService::parseInput(std::string cmd)
+    {
+        std::vector<std::string> args = splitCmd(cmd);            
+        if (args.size() == 0)
+            return "";
+        if (args[0] == "exit" || args[0] == "EXIT")
+        {
+            if(args.size() != 1)
+                return "Correct usage: EXIT";
+            std::string response = processExitCmd();
+            return response;
+        }
+        return "Available commands: EXIT";
+    }
+
+    std::string ParticipantInterfaceService::processExitCmd()
+    {
+        // TODO: get device info from NetworkHandler
+        std::vector<Table::Participant> manager = participantTable.get_participants();
+        Message exit_msg = 
+            { .type = Type::SleepServiceExit,
+              .hostname = "tbd",
+              .ip = "127.0.0.1",
+              .mac = "FFFFFFFFFFFF" };
+        networkHandler->send(exit_msg, manager[0].ip);     
+        
+        return "Sending exit message to manager " + manager[0].hostname + " @ " + manager[0].ip;    
     }
 }

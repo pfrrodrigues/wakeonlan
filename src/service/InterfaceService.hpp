@@ -6,7 +6,6 @@
 #include <pthread.h>
 
 namespace WakeOnLanImpl {
-    #define REFRESH_RATE 5 // seconds 
     /**
      * @class InterfaceService 
      * ...
@@ -17,46 +16,57 @@ namespace WakeOnLanImpl {
         InterfaceService(Table &table, std::shared_ptr<NetworkHandler> networkHandler);
         ~InterfaceService() = default;
 
-        void run();
+        virtual void run();
+        void stop();
 
-    private:
-        /**
-         * Creates tabulate::Table object and adds headers 
-         * 
-         * @return display table
-         */
-        tabulate::Table initializeDisplayTable();
-
-        void runDisplayTable();
-        
-        void runCommandListener();
-
-        /**
-         * Starts thread that runs runDisplayTable()
-         * 
-         * @param param Reference to current object (e.g. this)
-         * @return NULL
-         */
-        static void * startDisplayTable(void * param);
-        
-        /**
-         * Starts thread that runs runCommandListener()
-         * 
-         * @param param Reference to current object (e.g. this)
-         * @return NULL
-         */
-        static void * startCommandListener(void * param);
-        
-        std::string parseInput(std::string cmd);
+    protected:
         std::vector<std::string> splitCmd(std::string cmd);
 
+        std::shared_ptr<spdlog::logger> log;
+        std::vector<pthread_t> threads;
+        Table &participantTable;
+        std::shared_ptr<NetworkHandler> networkHandler;
+        bool keepRunning;
+    };
+
+    class ManagerInterfaceService : public InterfaceService
+    {
+        #define DISPLAY_TABLE_REFRESH_RATE 5 // seconds 
+    public:
+        ManagerInterfaceService(Table &table, std::shared_ptr<NetworkHandler> networkHandler)
+            : InterfaceService(table, networkHandler) { }
+        ~ManagerInterfaceService() = default;
+    
+        void run() override;
+    private:
+        static void * startCommandListener(void * param);
+        void runCommandListener();
+        std::string parseInput(std::string cmd);
         std::string processWakeupCmd(std::string hostname);
+
+        tabulate::Table initializeDisplayTable();
+        void runDisplayTable();
+        static void * startDisplayTable(void * param);
+        
+        int numParticipants;
+    };
+
+    class ParticipantInterfaceService : public InterfaceService
+    {
+        #define CONNECTION_CHECK_RATE 1
+    public:
+        ParticipantInterfaceService(Table &table, std::shared_ptr<NetworkHandler> networkHandler)
+            : InterfaceService(table, networkHandler) { }
+        ~ParticipantInterfaceService() = default;
+    
+        void run() override;
+    private:
+        static void * startCommandListener(void * param);
+        void runCommandListener();
+        std::string parseInput(std::string cmd);
         std::string processExitCmd();
 
-        std::shared_ptr<spdlog::logger> log;
-        pthread_t threads[2];
-        Table &participantTable;
-        int numParticipants;
-        std::shared_ptr<NetworkHandler> networkHandler;
+        bool isConnected();
     };
+
 } // namespace WakeOnLanImpl

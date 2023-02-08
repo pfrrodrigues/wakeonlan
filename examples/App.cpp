@@ -20,15 +20,20 @@ int main(int argc, char const *argv[])
                                                    .ip = "127.0.0.1",
                                                    .mac = "FF:FF:FF:FF:FF:FF",
                                                    .status = WakeOnLanImpl::Table::ParticipantStatus::Awaken };
-    if (!table.insert(p0))
-        std::cout << "Failed to insert\n";
-    if (!table.insert(p1))
-        std::cout << "Failed to insert\n";
-    if (!table.insert(p2))
-        std::cout << "Failed to insert\n";
+    // if (!table.insert(p0))
+        // std::cout << "Failed to insert\n";
+    // if (!table.insert(p1))
+    //     std::cout << "Failed to insert\n";
+    // if (!table.insert(p2))
+    //     std::cout << "Failed to insert\n";
 
-    WakeOnLanImpl::InterfaceService interface(table, networkHandler);
+    WakeOnLanImpl::ParticipantInterfaceService interface(table, networkHandler);
     interface.run();
+
+    while (true) { 
+        sleep(5);
+        table.insert(p0);
+    }
 
     return 0;
 }
