@@ -3,9 +3,10 @@
 #include <unistd.h>
 
 namespace WakeOnLanImpl {
-    InterfaceService::InterfaceService(Table &table) 
+    InterfaceService::InterfaceService(Table &table, std::shared_ptr<NetworkHandler> netHandler) 
         : participantTable(table)
     {
+        networkHandler = netHandler;
     }
 
     void InterfaceService::run()
@@ -47,10 +48,10 @@ namespace WakeOnLanImpl {
     {
         tabulate::Table display;
         std::cout << "\033[2J"; // clears terminal and moves cursor to (0,0)
-        int newParticipants;
+        int newNumParticipants;
         while (true)
         {
-            newParticipants = 0;
+            newNumParticipants = 0;
             std::vector<Table::Participant> participants = participantTable.get_participants();
             display = initializeDisplayTable();
             for (size_t i=0; i<participants.size(); i++)
@@ -63,21 +64,20 @@ namespace WakeOnLanImpl {
                     .font_color(participants[i].status == 
                                 Table::ParticipantStatus::Awaken ? tabulate::Color::green
                                                                  : tabulate::Color::red) ; 
-                newParticipants++;    
+                newNumParticipants++;    
             }
 
-            std::cout <<"\033[?25l"  // hides cursor
-                      <<"\033[s"     // saves cursor position
-                      <<"\033[0;0H"  // sets cursor position to (0,0)
-                      << display     // prints table
-                      << std::endl
-                      <<"\033[1B>> "; // moves cursor 1 line down and draws "<< "
-            if(newParticipants == numParticipants)
-                std::cout << "\033[u"; // returns cursor to saved position     
-            std::cout << "\033[?25h"; // shows cursor
+            std::cout <<"\033[?25l"           // hides cursor
+                      <<"\033[s"              // saves cursor position
+                      <<"\033[0;0H"           // sets cursor position to (0,0)
+                      << display << std::endl // prints table
+                      <<"\033[1B>> ";         // moves cursor 1 line down and draws "<< "
+            if(newNumParticipants == numParticipants)
+                std::cout << "\033[u";        // returns cursor to saved position     
+            std::cout << "\033[?25h";         // shows cursor
             std::flush(std::cout);  
 
-            numParticipants = newParticipants;
+            numParticipants = newNumParticipants;
             sleep(REFRESH_RATE);
         }
     }
@@ -109,11 +109,31 @@ namespace WakeOnLanImpl {
     std::string InterfaceService::parseInput(std::string cmd)
     {
         /*
-         * Missing handler integration if manager/client usage rules 
+         * TODO: handler integration if manager/client usage rules 
          * are to be enforced.
-         * Also missing message integration for sending out 
-         * wakeup and exit messages.
          */
+        std::vector<std::string> args = splitCmd(cmd);            
+        if (args.size() == 0)
+            return "";
+        if (args[0] == "exit" || args[0] == "EXIT")
+        {
+            if(args.size() != 1)
+                return "Correct usage: EXIT";
+            std::string response = processExitCmd(); 
+            return response;
+        }
+        if (args[0] == "wakeup" || args[0] == "WAKEUP")
+        {
+            if(args.size() != 2)
+                return "Correct usage: WAKEUP <hostname>";
+            std::string response = processWakeupCmd(args[1]);
+            return response;
+        }
+        return "Available commands: EXIT | WAKEUP <hostname>";
+    }
+
+    std::vector<std::string> InterfaceService::splitCmd(std::string cmd)
+    {
         std::string word;
         std::vector<std::string> words;
         int pos = cmd.find(' '), start = 0;
@@ -128,32 +148,11 @@ namespace WakeOnLanImpl {
         word = cmd.substr(start);
         if (word.size() > 1)
             words.push_back(word);
-            
-        if (words.size() == 0)
-            return "";
-        if (words[0] == "exit" || words[0] == "EXIT")
-        {
-            if(words.size() != 1)
-                return "Correct usage: EXIT";
-            std::string response = processExitCmd(); 
-            return response;
-        }
-        if (words[0] == "wakeup" || words[0] == "WAKEUP")
-        {
-            if(words.size() != 2)
-                return "Correct usage: WAKEUP <hostname>";
-            else 
-            {
-                std::string response = processWakeupCmd(words[1]);
-                return response;
-            }
-        }
-        return "Available commands: EXIT | WAKEUP <hostname>";
+        return words;
     }
     
     std::string InterfaceService::processWakeupCmd(std::string hostname)
     {
-        /* waiting integration with network handler */
         std::vector<Table::Participant> participants = participantTable.get_participants();
 
         std::string mac;
@@ -169,14 +168,14 @@ namespace WakeOnLanImpl {
             }
         if (!hostnameFound)
             return hostname + " not found.";
-        
-        // send wakeup message to mac address
+
+        networkHandler->wakeUp(mac); 
         return "Waking up " + hostname + " @ " + mac + ".";
     }
 
     std::string InterfaceService::processExitCmd()
     {
-        /* waiting integration with network handler */
+        // TODO: integration with network handler
         return "Exiting service...";    
     }
 }

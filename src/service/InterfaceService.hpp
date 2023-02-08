@@ -14,7 +14,7 @@ namespace WakeOnLanImpl {
     class InterfaceService
     {
     public:
-        InterfaceService(Table &table);
+        InterfaceService(Table &table, std::shared_ptr<NetworkHandler> networkHandler);
         ~InterfaceService() = default;
 
         void run();
@@ -27,16 +27,8 @@ namespace WakeOnLanImpl {
          */
         tabulate::Table initializeDisplayTable();
 
-        /**
-         * Prints updated Table every REFRESH_RATE seconds 
-         * 
-         */
         void runDisplayTable();
         
-        /**
-         * Listens to user input  
-         * 
-         */
         void runCommandListener();
 
         /**
@@ -56,6 +48,8 @@ namespace WakeOnLanImpl {
         static void * startCommandListener(void * param);
         
         std::string parseInput(std::string cmd);
+        std::vector<std::string> splitCmd(std::string cmd);
+
         std::string processWakeupCmd(std::string hostname);
         std::string processExitCmd();
 
@@ -63,8 +57,6 @@ namespace WakeOnLanImpl {
         pthread_t threads[2];
         Table &participantTable;
         int numParticipants;
+        std::shared_ptr<NetworkHandler> networkHandler;
     };
-    
-    
-
 } // namespace WakeOnLanImpl
