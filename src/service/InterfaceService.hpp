@@ -1,5 +1,6 @@
 #pragma once
 #include <../src/common/Table.hpp>
+#include <../src/handler/NetworkHandler.hpp>
 #include <spdlog/spdlog.h>
 #include <tabulate/table.hpp>
 #include <pthread.h>
@@ -21,42 +22,42 @@ namespace WakeOnLanImpl {
     private:
         /**
          * Creates tabulate::Table object and adds headers 
-         *
+         * 
          * @return display table
          */
-        tabulate::Table initialize_display_table();
+        tabulate::Table initializeDisplayTable();
 
         /**
          * Prints updated Table every REFRESH_RATE seconds 
          * 
          */
-        void run_display_table();
+        void runDisplayTable();
         
         /**
          * Listens to user input  
          * 
          */
-        void run_command_listener();
+        void runCommandListener();
 
         /**
-         * Starts thread that runs run_display_table()
+         * Starts thread that runs runDisplayTable()
          * 
          * @param param Reference to current object (e.g. this)
          * @return NULL
          */
-        static void * start_display_table(void * param);
+        static void * startDisplayTable(void * param);
         
         /**
-         * Starts thread that runs run_command_listener()
+         * Starts thread that runs runCommandListener()
          * 
          * @param param Reference to current object (e.g. this)
          * @return NULL
          */
-        static void * start_command_listener(void * param);
+        static void * startCommandListener(void * param);
         
-        std::string parse_input(std::string cmd);
-        std::string process_wakeup_cmd(std::string hostname);
-        std::string process_exit_cmd();
+        std::string parseInput(std::string cmd);
+        std::string processWakeupCmd(std::string hostname);
+        std::string processExitCmd();
 
         std::shared_ptr<spdlog::logger> log;
         pthread_t threads[2];

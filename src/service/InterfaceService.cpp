@@ -3,7 +3,8 @@
 #include <unistd.h>
 
 namespace WakeOnLanImpl {
-    InterfaceService::InterfaceService(Table &table) : participantTable(table)
+    InterfaceService::InterfaceService(Table &table) 
+        : participantTable(table)
     {
     }
 
@@ -12,21 +13,21 @@ namespace WakeOnLanImpl {
         numParticipants = 0;
 
         int ret;
-        ret = pthread_create(&threads[0], NULL, &start_display_table, this);
-        ret = pthread_create(&threads[1], NULL, &start_command_listener, this);
+        ret = pthread_create(&threads[0], NULL, &startDisplayTable, this);
+        ret = pthread_create(&threads[1], NULL, &startCommandListener, this);
 
         pthread_join(threads[0], NULL);
         pthread_join(threads[1], NULL);
     }
 
-    void * InterfaceService::start_display_table(void * param)
+    void * InterfaceService::startDisplayTable(void * param)
     {
         InterfaceService *obj = (InterfaceService *) param;
-        obj->run_display_table();
+        obj->runDisplayTable();
         return NULL;
     }
 
-    tabulate::Table InterfaceService::initialize_display_table()
+    tabulate::Table InterfaceService::initializeDisplayTable()
     {
         tabulate::Table displayTable;
         // add header
@@ -42,7 +43,7 @@ namespace WakeOnLanImpl {
         return displayTable;
     }
 
-    void InterfaceService::run_display_table()
+    void InterfaceService::runDisplayTable()
     {
         tabulate::Table display;
         std::cout << "\033[2J"; // clears terminal and moves cursor to (0,0)
@@ -51,7 +52,7 @@ namespace WakeOnLanImpl {
         {
             newParticipants = 0;
             std::vector<Table::Participant> participants = participantTable.get_participants();
-            display = initialize_display_table();
+            display = initializeDisplayTable();
             for (size_t i=0; i<participants.size(); i++)
             {
                 display.add_row({participants[i].hostname,
@@ -81,21 +82,21 @@ namespace WakeOnLanImpl {
         }
     }
 
-    void * InterfaceService::start_command_listener(void * param)
+    void * InterfaceService::startCommandListener(void * param)
     {
         InterfaceService *obj = (InterfaceService *) param;
-        obj->run_command_listener();
+        obj->runCommandListener();
         return NULL;
     }
 
-    void InterfaceService::run_command_listener()
+    void InterfaceService::runCommandListener()
     {
         std::string cmd, response;
         while(true)
         {
             std::cout << ">> ";
             std::getline(std::cin, cmd);
-            response = parse_input(cmd);
+            response = parseInput(cmd);
             std::cout << "\033[2A"  // moves cursor 2 lines up
                       << "\033[K"   // clears line 
                       << response   
@@ -105,7 +106,7 @@ namespace WakeOnLanImpl {
         }
     }
 
-    std::string InterfaceService::parse_input(std::string cmd)
+    std::string InterfaceService::parseInput(std::string cmd)
     {
         /*
          * Missing handler integration if manager/client usage rules 
@@ -134,7 +135,7 @@ namespace WakeOnLanImpl {
         {
             if(words.size() != 1)
                 return "Correct usage: EXIT";
-            std::string response = process_exit_cmd(); 
+            std::string response = processExitCmd(); 
             return response;
         }
         if (words[0] == "wakeup" || words[0] == "WAKEUP")
@@ -143,14 +144,14 @@ namespace WakeOnLanImpl {
                 return "Correct usage: WAKEUP <hostname>";
             else 
             {
-                std::string response = process_wakeup_cmd(words[1]);
+                std::string response = processWakeupCmd(words[1]);
                 return response;
             }
         }
         return "Available commands: EXIT | WAKEUP <hostname>";
     }
     
-    std::string InterfaceService::process_wakeup_cmd(std::string hostname)
+    std::string InterfaceService::processWakeupCmd(std::string hostname)
     {
         /* waiting integration with network handler */
         std::vector<Table::Participant> participants = participantTable.get_participants();
@@ -173,7 +174,7 @@ namespace WakeOnLanImpl {
         return "Waking up " + hostname + " @ " + mac + ".";
     }
 
-    std::string InterfaceService::process_exit_cmd()
+    std::string InterfaceService::processExitCmd()
     {
         /* waiting integration with network handler */
         return "Exiting service...";    
