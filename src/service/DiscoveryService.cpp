@@ -31,11 +31,12 @@ namespace WakeOnLanImpl {
             strncpy(message.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
 
             uint32_t seq = 1;
-            std::cout << "Manager is sending a discovery packet with sequence number " << seq << "...\n";
-            sleep(2);
-            message.msgSeqNum = seq;
-            inetHandler->send(message, "127.0.0.1");
             while (true) {
+                std::cout << "Manager is sending a discovery packet with sequence number " << seq << "...\n";
+                sleep(2);
+                message.msgSeqNum = seq;
+                inetHandler->send(message, "255.255.255.255");
+                sleep(1);
                 auto m = inetHandler->getFromDiscoveryQueue();
                 if (m != nullptr) {
                     std::cout << "Manager has received a discovery response\n";
