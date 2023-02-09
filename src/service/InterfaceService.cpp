@@ -85,16 +85,16 @@ namespace WakeOnLanImpl {
         while (keepRunning)
         {
             newNumParticipants = 0;
-            std::vector<Table::Participant> participants = participantTable.get_participants();
+            lastSyncParticipants = participantTable.get_participants();
             display = initializeDisplayTable();
-            for (size_t i=0; i<participants.size(); i++)
+            for (size_t i=0; i<lastSyncParticipants.size(); i++)
             {
-                display.add_row({participants[i].hostname,
-                                 participants[i].ip,
-                                 participants[i].mac,
-                                 participants[i].status == Table::ParticipantStatus::Awaken ? "AWAKE" : "ASLEEP"});
+                display.add_row({lastSyncParticipants[i].hostname,
+                                 lastSyncParticipants[i].ip,
+                                 lastSyncParticipants[i].mac,
+                                 lastSyncParticipants[i].status == Table::ParticipantStatus::Awaken ? "AWAKE" : "ASLEEP"});
                 display[i+1][3].format()
-                    .font_color(participants[i].status == 
+                    .font_color(lastSyncParticipants[i].status == 
                                 Table::ParticipantStatus::Awaken ? tabulate::Color::green
                                                                  : tabulate::Color::red) ; 
                 newNumParticipants++;    
@@ -157,11 +157,10 @@ namespace WakeOnLanImpl {
     
     std::string ManagerInterfaceService::processWakeupCmd(std::string hostname)
     {
-        std::vector<Table::Participant> participants = participantTable.get_participants();
 
         std::string mac;
         bool hostnameFound = false; 
-        for (auto& participant : participants)
+        for (auto& participant : lastSyncParticipants)
             if(participant.hostname == hostname)
             {
                 if(participant.status == Table::ParticipantStatus::Awaken)
@@ -197,23 +196,14 @@ namespace WakeOnLanImpl {
         return NULL;
     }
 
-    bool ParticipantInterfaceService::isConnected()
-    {
-        std::vector<Table::Participant> manager = participantTable.get_participants();
-        return manager.size() > 0;
-    }
-
     void ParticipantInterfaceService::runCommandListener()
     {
         // wait connection
-        if(!isConnected())
-        {
-            std::cout << "\033[2J"
-                      << "Waiting connection to manager..."
-                      << std::endl;
-            while (!isConnected());
-                sleep(CONNECTION_CHECK_RATE);
-        }
+        std::cout << "Waiting connection to manager...";
+        std::vector<Table::Participant> ms = participantTable.get_participants();
+        if(ms.size() != 0)
+            std::cout << "Something went wrong..";
+        manager = ms[0];
 
         // receive input
         std::cout << "\033[2J" // clears terminal and moves cursor to (0,0)
@@ -251,15 +241,17 @@ namespace WakeOnLanImpl {
 
     std::string ParticipantInterfaceService::processExitCmd()
     {
-        // TODO: get device info from NetworkHandler
-        std::vector<Table::Participant> manager = participantTable.get_participants();
-        Message exit_msg = 
-            { .type = Type::SleepServiceExit,
-              .hostname = "tbd",
-              .ip = "127.0.0.1",
-              .mac = "FFFFFFFFFFFF" };
-        networkHandler->send(exit_msg, manager[0].ip);     
+        Config selfInfo = networkHandler->getDeviceConfig();
+        Message exit_msg;
+        exit_msg.type = Type::SleepServiceExit;
+        bzero(exit_msg.hostname, sizeof(exit_msg.hostname));
+        bzero(exit_msg.ip, sizeof(exit_msg.ip));
+        bzero(exit_msg.mac, sizeof(exit_msg.mac));
+        strncpy(exit_msg.hostname, selfInfo.getHostname().c_str(), selfInfo.getHostname().size());
+        strncpy(exit_msg.ip, selfInfo.getIpAddress().c_str(), selfInfo.getIpAddress().size());
+        strncpy(exit_msg.mac, selfInfo.getMacAddress().c_str(), selfInfo.getMacAddress().size());
+        networkHandler->send(exit_msg, manager.ip);     
         
-        return "Sending exit message to manager " + manager[0].hostname + " @ " + manager[0].ip;    
+        return "Sending exit message to manager " + manager.hostname + " @ " + manager.ip;    
     }
 }

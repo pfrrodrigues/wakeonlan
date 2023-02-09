@@ -31,7 +31,7 @@ namespace WakeOnLanImpl {
 
     class ManagerInterfaceService : public InterfaceService
     {
-        #define DISPLAY_TABLE_REFRESH_RATE 5 // seconds 
+        #define DISPLAY_TABLE_REFRESH_RATE 0 // seconds 
     public:
         ManagerInterfaceService(Table &table, std::shared_ptr<NetworkHandler> networkHandler)
             : InterfaceService(table, networkHandler) { }
@@ -48,6 +48,7 @@ namespace WakeOnLanImpl {
         void runDisplayTable();
         static void * startDisplayTable(void * param);
         
+        std::vector<Table::Participant> lastSyncParticipants;
         int numParticipants;
     };
 
@@ -66,7 +67,7 @@ namespace WakeOnLanImpl {
         std::string parseInput(std::string cmd);
         std::string processExitCmd();
 
-        bool isConnected();
+        Table::Participant manager;
     };
 
 } // namespace WakeOnLanImpl
