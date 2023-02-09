@@ -11,19 +11,30 @@
 class Handler {
 public:
     virtual void run();
-private:
-    // TODO: include services and the network handler here
+    Handler();
+    virtual ~Handler();
 };
 
 class ManagerHandler : public Handler {
 public:
     void run() override;
+    explicit ManagerHandler(const Config &config, WakeOnLanImpl::Table& = WakeOnLanImpl::Table::get());
+    virtual ~ManagerHandler();
 private:
-    // TODO: include the table here
+    std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
+    std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
+    WakeOnLanImpl::Table& table;
+    Config config;
 };
 
 class ParticipantHandler : public Handler {
 public:
     void run() override;
+    explicit ParticipantHandler(const Config &config, WakeOnLanImpl::Table& = WakeOnLanImpl::Table::get());
+    virtual ~ParticipantHandler();
 private:
+    std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
+    std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
+    WakeOnLanImpl::Table& table;
+    Config config;
 };
