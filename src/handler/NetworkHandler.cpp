@@ -5,8 +5,9 @@
 #define LOCAL_SERVER_ADDRESS "0.0.0.0"
 
 namespace WakeOnLanImpl {
-    NetworkHandler::NetworkHandler(const uint32_t &port)
-    : port(port)
+    NetworkHandler::NetworkHandler(const uint32_t &port, const Config &cfg)
+    : port(port),
+      config(cfg)
     {
         t = std::make_unique<std::thread>([this, port](){
             UdpSocket socket(LOCAL_SERVER_ADDRESS, port); // TODO: this must be closed
@@ -34,20 +35,20 @@ namespace WakeOnLanImpl {
     }
 
     NetworkHandler::~NetworkHandler() {
-        if (t) {
-            if (t->joinable())
-                t->join();
+        if (t->joinable()) {
+            t->join();
         }
     }
 
     bool NetworkHandler::send(const Message &message, const std::string &ip) {
+        std::lock_guard<std::mutex> lk(inetMutex);
         UdpSocket socket(ip, SERVICE_PORT);
         socket.send(message);
         return true;
     }
 
     Message* NetworkHandler::getFromDiscoveryQueue() {
-        // TODO: this must be done to free message after returned it
+        std::lock_guard<std::mutex> lk(inetMutex);
         static bool free = false;
         if (free) {
             discoveryQueue.pop();
@@ -65,7 +66,7 @@ namespace WakeOnLanImpl {
     }
 
     Message* NetworkHandler::getFromMonitoringQueue() {
-        // TODO: this must be done to free message after returned it
+        std::lock_guard<std::mutex> lk(inetMutex);
         static bool free = false;
         if (free) {
             monitoringQueue.pop();
@@ -83,6 +84,7 @@ namespace WakeOnLanImpl {
     }
 
     bool NetworkHandler::wakeUp(const std::string &mac) {
+        std::lock_guard<std::mutex> lk(inetMutex);
         UdpSocket socket(BROADCAST_ADDRESS, WON_PORT);
         size_t pos;
         std::string delimiter = ":";
@@ -113,4 +115,6 @@ namespace WakeOnLanImpl {
         socket.sendMagicPacket(buffer.c_str());
         return true;
     }
+
+    const Config &NetworkHandler::getDeviceConfig() { return config; }
 } // namespace WakeOnLanImpl;

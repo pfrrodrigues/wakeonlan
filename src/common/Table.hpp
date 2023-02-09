@@ -79,7 +79,7 @@ namespace WakeOnLanImpl {
         * of the group and the true value is returned to the caller of the function. Otherwise,
         * false is returned, indicating the deletion did not occur with success.
         *
-        * @param entry An opaque Context returned when Context was created.
+        * @param hostname The hostname of the participant to be removed.
         * @return A bool indicating the participant was deleted of the table with success.
         */
         bool remove(const std::string &hostname);

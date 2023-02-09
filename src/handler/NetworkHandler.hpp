@@ -6,6 +6,7 @@
 #include <string>
 #include <cstring>
 #include <../src/common/UdpSocket.hpp>
+#include <../include/Config.hpp>
 
 namespace WakeOnLanImpl {
     /**
@@ -22,8 +23,9 @@ namespace WakeOnLanImpl {
         /**
          * NetworkHandler Constructor
          * @param port The port used in the bound socket created to receive messages.
+         * @param config The host configuration
          */
-        explicit NetworkHandler(const uint32_t &port);
+        explicit NetworkHandler(const uint32_t &port, const Config &config);
 
         /**
          * NetworkHandler Destructor
@@ -70,6 +72,8 @@ namespace WakeOnLanImpl {
          * @returns A bool indicating the WOL packet was sent.
          */
         bool wakeUp(const std::string &mac);
+
+        const Config & getDeviceConfig();
     private:
         std::unique_ptr<std::thread> t;         ///< The thread used to receive messages.
         std::mutex inetMutex;                   ///< The mutex for controlling internal issues.
@@ -78,5 +82,6 @@ namespace WakeOnLanImpl {
         std::queue<Message> discoveryQueue;     ///< The queue buffering messages designated to the Discovery service.
         std::queue<Message> monitoringQueue;    ///< The queue buffering messages designated to the Monitoring service.
         uint32_t  port;                         ///< The port the handler service is running on.
+        Config config;
     };
 } // namespace WakeOnLanImpl

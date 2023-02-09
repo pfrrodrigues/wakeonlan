@@ -4,10 +4,10 @@ ApiInstanceImpl::ApiInstanceImpl(const Config &config)
     : config(config) {
     switch (this->config.getHandlerType()) {
         case Manager:
-            handler = std::make_unique<ManagerHandler>();
+            handler = std::make_unique<ManagerHandler>(config);
             break;
         case Participant:
-            handler = std::make_unique<ParticipantHandler>();
+            handler = std::make_unique<ParticipantHandler>(config);
             break;
     }
 
@@ -26,10 +26,8 @@ ApiInstanceImpl::ApiInstanceImpl(const Config &config)
             switch (this->config.getHandlerType()) {
                 case Manager:
                     return "Manager";
-                    break;
                 case Participant:
                     return "Participant";
-                    break;
                 default:
                     break;
             }
