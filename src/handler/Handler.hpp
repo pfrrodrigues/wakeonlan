@@ -22,6 +22,7 @@ public:
     virtual ~ManagerHandler();
 private:
     std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
+    std::unique_ptr<WakeOnLanImpl::ManagerInterfaceService> interfaceService;
     std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
     WakeOnLanImpl::Table& table;
     Config config;
@@ -34,6 +35,7 @@ public:
     virtual ~ParticipantHandler();
 private:
     std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
+    std::unique_ptr<WakeOnLanImpl::ParticipantInterfaceService> interfaceService;
     std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
     WakeOnLanImpl::Table& table;
     Config config;
