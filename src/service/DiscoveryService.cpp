@@ -39,10 +39,15 @@ namespace WakeOnLanImpl {
                 sleep(1);
                 auto m = inetHandler->getFromDiscoveryQueue();
                 if (m != nullptr) {
-                    std::cout << "Manager has received a discovery response\n";
-                    std::cout << *m << std::endl;
-                    seq++;
-                    m = nullptr;
+		    if (m->ip != config.getIpAddress()) {
+		            std::cout << "Manager has received a discovery response\n";
+		            // std::cout << *m << std::endl;
+			    sleep(15);
+			    inetHandler->wakeUp(m->mac);
+			    std::cout << "Sending a WOL package for the host " << m->mac << std::endl;
+		            seq++;
+		            m = nullptr;
+		    }
                 }
             }
         });

@@ -10,7 +10,7 @@
 
 class ConfigParserException : public std::runtime_error {
 public:
-    explicit ConfigParserException(std::string_view message) : std::runtime_error(message.data()) {}
+    explicit ConfigParserException(const std::string &message) : std::runtime_error(message.data()) {}
 };
 
 Config::Config(char **params, const int &quantity)
