@@ -43,6 +43,7 @@ namespace WakeOnLanImpl {
         std::shared_ptr<NetworkHandler> inetHandler;
         std::unique_ptr<std::thread> t;
         bool active;
+        time_t timestamp;
         int seq;
     };
     

@@ -37,7 +37,7 @@ namespace WakeOnLanImpl {
         active = true;
         seq = 0;
         t = std::make_unique<std::thread>([this]() {
-            time_t timestamp = std::time(0);
+            timestamp = std::time(0);
             bool updated = false;
             std::vector<std::string> sleeping_participants,
                                      awaken_participants;
@@ -80,7 +80,52 @@ namespace WakeOnLanImpl {
 
     void MonitoringService::runAsParticipant()
     {
-        return;
+        if (t)
+            t->join();
+
+        active = true;
+        t = std::make_unique<std::thread>([this](bool timerSet) {
+            Message *msg;
+            bool timerSet = false;
+            while(active)
+            {
+                switch (inetHandler->getGlobalStatus())
+                {
+                case ServiceGlobalStatus::Syncing:
+                    if(!timerSet)
+                    {
+                        timestamp = std::time(0);
+                        timerSet = true;
+                    }
+                    if(timestamp + 35 < std::time(0))
+                    {
+                        inetHandler->changeStatus(ServiceGlobalStatus::WaitingForSync);
+                        break;
+                    }
+                    msg = inetHandler->getFromMonitoringQueue();
+                    if(msg)
+                    {
+                        seq = msg->msgSeqNum;
+                        inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
+                        Message answer = getSleepStatusRequest();
+                        inetHandler->send(answer, msg->ip);
+                    }
+                    break;
+                case ServiceGlobalStatus::Synchronized:
+                    // check msg and answer 
+                    msg = inetHandler->getFromMonitoringQueue();
+                    if(msg)
+                    {
+                        seq = msg->msgSeqNum;
+                        Message answer = getSleepStatusRequest();
+                        inetHandler->send(answer, msg->ip);
+                    }
+                    break;
+                default: // Unknown or WaitingForSync
+                    break;
+                }
+            }
+        });
     }
 
     Message MonitoringService::getSleepStatusRequest()
