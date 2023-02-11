@@ -7,6 +7,7 @@
 #include <cstring>
 #include <../src/common/UdpSocket.hpp>
 #include <../include/Config.hpp>
+#include <spdlog/spdlog.h>
 
 namespace WakeOnLanImpl {
 
@@ -97,5 +98,6 @@ namespace WakeOnLanImpl {
         Config config;
         ServiceGlobalStatus globalStatus;
         std::mutex gsMutex;
+        std::shared_ptr<spdlog::logger> log;
     };
 } // namespace WakeOnLanImpl

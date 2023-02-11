@@ -120,6 +120,21 @@ namespace WakeOnLanImpl {
     void NetworkHandler::changeStatus(const ServiceGlobalStatus &gs) {
         std::lock_guard<std::mutex> lk(gsMutex);
         globalStatus = gs;
+        log = spdlog::get("wakeonlan-api");
+        log->info("STATUS UPDATE: {}", [this]() {
+            switch (globalStatus) {
+                case WaitingForSync:
+                    return "WaitingForSync";
+                case Syncing:
+                    return "Syncing";
+                case Synchronized:
+                    return "Synchronized";
+                case Unknown:
+                    return "Unknown";
+                default:
+                    break;
+            }
+        }());
     }
 
     const ServiceGlobalStatus& NetworkHandler::getGlobalStatus() {
