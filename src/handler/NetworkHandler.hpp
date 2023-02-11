@@ -9,6 +9,14 @@
 #include <../include/Config.hpp>
 
 namespace WakeOnLanImpl {
+
+    enum ServiceGlobalStatus {
+        WaitingForSync = 0,
+        Syncing = 1,
+        Synchronized = 2,
+        Unknown = 3
+    };
+
     /**
      * @class NetworkHandler
      * This class is responsible for providing a broker engine to the API services,
@@ -74,6 +82,10 @@ namespace WakeOnLanImpl {
         bool wakeUp(const std::string &mac);
 
         const Config & getDeviceConfig();
+
+        void changeStatus(const ServiceGlobalStatus &gs);
+
+        const ServiceGlobalStatus& getGlobalStatus();
     private:
         std::unique_ptr<std::thread> t;         ///< The thread used to receive messages.
         std::mutex inetMutex;                   ///< The mutex for controlling internal issues.
@@ -83,5 +95,7 @@ namespace WakeOnLanImpl {
         std::queue<Message> monitoringQueue;    ///< The queue buffering messages designated to the Monitoring service.
         uint32_t  port;                         ///< The port the handler service is running on.
         Config config;
+        ServiceGlobalStatus globalStatus;
+        std::mutex gsMutex;
     };
 } // namespace WakeOnLanImpl
