@@ -2,10 +2,16 @@
 #include <memory>
 
 namespace WakeOnLanImpl {
+#define WAKEONLAN_SYN 1
+#define WAKEONLAN_SYN_ACK 2
+#define WAKEONLAN_BROADCAST_ADDRESS "255.255.255.255"
+#define WAKEONLAN_DISCOVERY_REQUEST_WINDOW 10
+
     DiscoveryService::DiscoveryService(Table &t, std::shared_ptr<NetworkHandler> nh)
         : table(t),
         inetHandler(nh),
-        active(false)
+        active(false),
+        lastTimestamp(std::time(nullptr))
     {}
 
     DiscoveryService::~DiscoveryService() {
@@ -19,30 +25,60 @@ namespace WakeOnLanImpl {
         if (t)
             t->join();
 
-        t = std::make_unique<std::thread>([this](){
-            auto config = inetHandler->getDeviceConfig();
-            Message message{};
-            message.type = WakeOnLanImpl::Type::SleepServiceDiscovery;
-            bzero(message.hostname, sizeof(message.hostname));
-            bzero(message.ip, sizeof(message.ip));
-            bzero(message.mac, sizeof(message.mac));
-            strncpy(message.hostname, config.getHostname().c_str(), config.getHostname().size());
-            strncpy(message.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
-            strncpy(message.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
+        active = true;
+        this->log = spdlog::get("wakeonlan-api");
 
-            uint32_t seq = 1;
-            while (true) {
-                std::cout << "Manager is sending a discovery packet with sequence number " << seq << "...\n";
-                sleep(2);
-                message.msgSeqNum = seq;
-                inetHandler->send(message, "255.255.255.255");
-                sleep(1);
-                auto m = inetHandler->getFromDiscoveryQueue();
-                if (m != nullptr) {
-                    std::cout << "Manager has received a discovery response\n";
-                    std::cout << *m << std::endl;
-                    seq++;
-                    m = nullptr;
+        t = std::make_unique<std::thread>([this](){
+            log->info("Start Discovery service");
+            auto config = inetHandler->getDeviceConfig();
+            while (active) {
+                Message *m;
+                if (inetHandler->getGlobalStatus() == Unknown) {
+                    inetHandler->changeStatus(Synchronized);
+                }
+
+                if (inetHandler->getGlobalStatus() == Synchronized) {
+                    /* Sent a broadcast packet each 10 seconds */
+                    if (lastTimestamp < (std::time(nullptr) - WAKEONLAN_DISCOVERY_REQUEST_WINDOW)) {
+                        Message broadcastMsg{};
+                        broadcastMsg.type = WakeOnLanImpl::Type::SleepServiceDiscovery;
+                        broadcastMsg.msgSeqNum = WAKEONLAN_SYN;
+                        bzero(broadcastMsg.hostname, sizeof(broadcastMsg.hostname));
+                        bzero(broadcastMsg.ip, sizeof(broadcastMsg.ip));
+                        bzero(broadcastMsg.mac, sizeof(broadcastMsg.mac));
+                        strncpy(broadcastMsg.hostname, config.getHostname().c_str(), config.getHostname().size());
+                        strncpy(broadcastMsg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
+                        strncpy(broadcastMsg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
+                        inetHandler->send(broadcastMsg, WAKEONLAN_BROADCAST_ADDRESS);
+                        lastTimestamp = std::time(nullptr);
+                    }
+
+                    m = inetHandler->getFromDiscoveryQueue();
+                    if (m != nullptr) {
+                        switch (m->type) {
+                            case Type::SleepServiceDiscovery:
+                                if (m->msgSeqNum == WAKEONLAN_SYN_ACK) {
+                                    Table::Participant p;
+                                    p.ip = m->ip;
+                                    p.mac = m->mac;
+                                    p.hostname = m->hostname;
+                                    p.status = Table::ParticipantStatus::Unknown;
+
+                                    if (table.insert(p)) {
+                                        log->info("Participant has joined the group [Hostname={}, IP={}, MAC={}]",
+                                                  m->hostname, m->ip,m->mac);
+                                    }
+                                }
+                                break;
+                            case Type::SleepServiceExit:
+                                if (table.remove(m->hostname))
+                                    log->info("Participant was removed from the group [Hostname={}, IP={}, MAC={}]",
+                                              m->hostname, m->ip,m->mac);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                 }
             }
         });
@@ -52,27 +88,47 @@ namespace WakeOnLanImpl {
         if (t)
             t->join();
 
-        t = std::make_unique<std::thread>([this](){
-            bool done = false;
-            while (!done) {
-                auto m = inetHandler->getFromDiscoveryQueue();
-                if (m != nullptr) {
-                    std::cout << "Participant has received a discovery request\n";
-                    std::cout << *m;
+        active = true;
+        this->log = spdlog::get("wakeonlan-api");
 
-                    std::cout << "Sending the discovery response with sequence number " << m->msgSeqNum + 1 << "...\n";
-                    auto config = inetHandler->getDeviceConfig();
-                    Message message{};
-                    message.type = WakeOnLanImpl::Type::SleepServiceDiscovery;
-                    message.msgSeqNum = m->msgSeqNum + 1;
-                    bzero(message.hostname, sizeof(message.hostname));
-                    bzero(message.ip, sizeof(message.ip));
-                    bzero(message.mac, sizeof(message.mac));
-                    strncpy(message.hostname, config.getHostname().c_str(), config.getHostname().size());
-                    strncpy(message.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
-                    strncpy(message.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
-                    inetHandler->send(message, m->ip);
-                    m = nullptr;
+        t = std::make_unique<std::thread>([this](){
+            log->info("Start Discovery service");
+            auto serviceStatus = inetHandler->getGlobalStatus();
+            auto config = inetHandler->getDeviceConfig();
+
+            if (serviceStatus == Unknown)
+                inetHandler->changeStatus(WaitingForSync);
+
+            while (active) {
+                Message *m;
+
+                m = inetHandler->getFromDiscoveryQueue();
+                if (m != nullptr) {
+                    switch (m->type) {
+                        case Type::SleepServiceDiscovery:
+                            switch (inetHandler->getGlobalStatus()) {
+                                case WaitingForSync:
+                                    if (m->msgSeqNum == WAKEONLAN_SYN) {
+                                        Message message{};
+                                        message.type = WakeOnLanImpl::Type::SleepServiceDiscovery;
+                                        message.msgSeqNum = WAKEONLAN_SYN_ACK;
+                                        bzero(message.hostname, sizeof(message.hostname));
+                                        bzero(message.ip, sizeof(message.ip));
+                                        bzero(message.mac, sizeof(message.mac));
+                                        strncpy(message.hostname, config.getHostname().c_str(), config.getHostname().size());
+                                        strncpy(message.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
+                                        strncpy(message.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
+                                        inetHandler->send(message, m->ip);
+                                        inetHandler->changeStatus(Syncing);
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         });
