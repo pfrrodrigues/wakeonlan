@@ -7,7 +7,8 @@
 namespace WakeOnLanImpl {
     NetworkHandler::NetworkHandler(const uint32_t &port, const Config &cfg)
     : port(port),
-      config(cfg)
+      config(cfg),
+      globalStatus(Unknown)
     {
         t = std::make_unique<std::thread>([this, port](){
             UdpSocket socket(LOCAL_SERVER_ADDRESS, port); // TODO: this must be closed
@@ -114,6 +115,16 @@ namespace WakeOnLanImpl {
 
         socket.sendMagicPacket(buffer.c_str());
         return true;
+    }
+
+    void NetworkHandler::changeStatus(const ServiceGlobalStatus &gs) {
+        std::lock_guard<std::mutex> lk(gsMutex);
+        globalStatus = gs;
+    }
+
+    const ServiceGlobalStatus& NetworkHandler::getGlobalStatus() {
+        std::lock_guard<std::mutex> lk(gsMutex);
+        return globalStatus;
     }
 
     const Config &NetworkHandler::getDeviceConfig() { return config; }
