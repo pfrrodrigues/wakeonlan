@@ -90,6 +90,7 @@ namespace WakeOnLanImpl {
          * @return A vector of registered participants.  
          */
         std::vector<Participant> get_participants();
+        std::vector<Participant> get_participants_monitoring();
     private:
         Table() = default;
 

@@ -27,10 +27,13 @@ namespace WakeOnLanImpl {
         std::lock_guard<std::mutex> lk(tableMutex);
         auto it = data.find(hostname);
         if (it != data.end()) {
-            it->second.status = status;
+            if(it->second.status != status)
+            {
+                it->second.status = status;
+                updated = true;
+                cv.notify_one();
+            }
             returnCode = true;
-            updated = true;
-            cv.notify_one();
         }
         return returnCode;
     }
@@ -54,6 +57,14 @@ namespace WakeOnLanImpl {
         for(auto& entry: data)
             participants.push_back(entry.second);
         updated = false;
+        return participants;
+    }
+
+    std::vector<Table::Participant> Table::get_participants_monitoring() {
+        std::vector<Table::Participant> participants;
+        std::unique_lock<std::mutex> lk(tableMutex);
+        for(auto& entry: data)
+            participants.push_back(entry.second);
         return participants;
     }
 } // namespace WakeOnLanImpl
