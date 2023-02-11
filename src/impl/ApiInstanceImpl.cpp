@@ -18,7 +18,7 @@ ApiInstanceImpl::ApiInstanceImpl(const Config &config)
                                spdlog::async_overflow_policy::block_retry,
                                nullptr, std::chrono::seconds(1));
 
-        auto log = spdlog::basic_logger_mt("wakeonlan-api", "logs/wakeonlan-api.log");
+        log = spdlog::basic_logger_mt("wakeonlan-api", "logs/wakeonlan-api.log");
         log->set_pattern("[%d-%m-%Y %H:%M:%S] [%l] %v");
         log->info("---------------- Wake on Lan API ---------------");
         log->info("Version {}", WAKEONLAN_API_VERSION);
@@ -43,5 +43,6 @@ ApiInstanceImpl::ApiInstanceImpl(const Config &config)
 ApiInstanceImpl::~ApiInstanceImpl() {}
 
 void ApiInstanceImpl::run() {
+    log->info("Starting handler");
     handler->run();
 }

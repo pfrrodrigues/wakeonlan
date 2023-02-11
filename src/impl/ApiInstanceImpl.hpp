@@ -11,6 +11,6 @@ public:
 private:
     Config config;
     std::unique_ptr<Handler> handler;
-    std::shared_ptr<spdlog::logger> _log;
+    std::shared_ptr<spdlog::logger> log;
 };
 
