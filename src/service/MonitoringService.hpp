@@ -37,14 +37,12 @@ namespace WakeOnLanImpl {
          */
         void runAsParticipant();
 
-        Message getSleepStatusRequest();
+        Message getSleepStatusRequest(int seq);
 
         Table &table;
         std::shared_ptr<NetworkHandler> inetHandler;
         std::unique_ptr<std::thread> t;
         bool active;
-        time_t timestamp;
-        int seq;
     };
     
 } // namespace WakeOnLanImpl

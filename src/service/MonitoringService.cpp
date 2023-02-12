@@ -35,44 +35,64 @@ namespace WakeOnLanImpl {
             t->join();
 
         active = true;
-        seq = 0;
         t = std::make_unique<std::thread>([this]() {
-            timestamp = std::time(0);
+            time_t timestamp;
+            bool timerSet;
+            int seq = 0;
             bool updated = false;
             std::vector<std::string> sleeping_participants,
                                      awaken_participants;
             Message *msg;
             while (active)
             {
-                // every 8s
-                if(timestamp + 8 < std::time(0))
+                if(timestamp + 8 < std::time(0) || !timerSet) // every 8s
                 {
+                    // so it doesn't have to wait 8s for before the first call
+                    if(!timerSet)    
+                        timerSet = true;
+
+                    // participants still in sleeping_participants haven't answered and 
+                    // the last call are considered to be Sleeping
                     for(auto& hostname : sleeping_participants)
                         table.update(Table::ParticipantStatus::Sleeping, hostname);
+                    
+                    // participants in awaken_participants have answered the last call
+                    // and are considered to be Awaken.
                     for(auto& hostname : awaken_participants)
                         table.update(Table::ParticipantStatus::Awaken, hostname);
-
+                    
+                    // resets vectors
                     sleeping_participants.clear();
                     awaken_participants.clear();
                     for(auto& participant: table.get_participants_monitoring())
                     {
+                        // sleeping_participants is initialized with every participant
+                        // currently in the table
                         sleeping_participants.push_back(participant.hostname);
 
                         // send sleep status request 
-                        Message message = getSleepStatusRequest();
+                        std::cout << "Manager is sending sleep status request to "
+                                  << participant.hostname << " @ " 
+                                  << participant.ip << std::endl; 
+                        Message message = getSleepStatusRequest(seq);
                         inetHandler->send(message, participant.ip);
                     }
                     seq++;
-                    timestamp = std::time(0);
+                    timestamp = std::time(0); // reset timer
                 }
                 msg = inetHandler->getFromMonitoringQueue();
-                if(msg)
+                if(msg) // if there is an answer from a participant 
                 {
+                    // erase participant from sleeping_participants and puts 
+                    // it in awaken_participants
                     std::string hostname = msg->hostname;
                     awaken_participants.push_back(hostname);
                     sleeping_participants.erase(std::find(sleeping_participants.begin(), 
                                                           sleeping_participants.end(), 
                                                           hostname));
+                    std::cout << "Manager got answer from "
+                              << msg->hostname << " @ "
+                              << msg->ip << std::endl;
                 }
             }
         });
@@ -86,20 +106,19 @@ namespace WakeOnLanImpl {
         active = true;
         t = std::make_unique<std::thread>([this](bool timerSet) {
             Message *msg;
-            bool timerSet = false;
+            time_t timestamp = std::time(0);
+            int seq;
             while(active)
             {
                 switch (inetHandler->getGlobalStatus())
                 {
+                // has to wait 35s for a sleep status request message or else 
+                // assumes it should wait a new discovery message
                 case ServiceGlobalStatus::Syncing:
-                    if(!timerSet)
-                    {
-                        timestamp = std::time(0);
-                        timerSet = true;
-                    }
                     if(timestamp + 35 < std::time(0))
                     {
                         inetHandler->changeStatus(ServiceGlobalStatus::WaitingForSync);
+                        std::cout << "Timed out waiting for sleep status request, waiting new discovery msg" << std::endl;
                         break;
                     }
                     msg = inetHandler->getFromMonitoringQueue();
@@ -107,8 +126,10 @@ namespace WakeOnLanImpl {
                     {
                         seq = msg->msgSeqNum;
                         inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
-                        Message answer = getSleepStatusRequest();
+                        Message answer = getSleepStatusRequest(seq);
                         inetHandler->send(answer, msg->ip);
+                        std::cout << "Got sleep status request. "
+                                  << "Going to Synced state" << std::endl;
                     }
                     break;
                 case ServiceGlobalStatus::Synchronized:
@@ -117,8 +138,9 @@ namespace WakeOnLanImpl {
                     if(msg)
                     {
                         seq = msg->msgSeqNum;
-                        Message answer = getSleepStatusRequest();
+                        Message answer = getSleepStatusRequest(seq);
                         inetHandler->send(answer, msg->ip);
+                        std::cout << "Got sleep status request." << std::endl;
                     }
                     break;
                 default: // Unknown or WaitingForSync
@@ -128,7 +150,7 @@ namespace WakeOnLanImpl {
         });
     }
 
-    Message MonitoringService::getSleepStatusRequest()
+    Message MonitoringService::getSleepStatusRequest(int seq)
     {
         Config config = inetHandler->getDeviceConfig();
         Message message{};
