@@ -104,7 +104,7 @@ namespace WakeOnLanImpl {
             t->join();
 
         active = true;
-        t = std::make_unique<std::thread>([this](bool timerSet) {
+        t = std::make_unique<std::thread>([this]() {
             Message *msg;
             time_t timestamp = std::time(0);
             int seq;
