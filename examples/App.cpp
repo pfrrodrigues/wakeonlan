@@ -24,10 +24,10 @@ int main(int argc, char *argv[])
     if(config.getHandlerType() == HandlerType::Manager)
     {
         WakeOnLanImpl::MonitoringService monitoring(table, networkHandler);
+        monitoring.run();
         sleep(1);
         table.insert(p0);
         std::cout << "inserted participant in table" << std::endl;
-        monitoring.run();
         // sleep(5);
         // table.insert(p1);
         // std::cout << "inserted p1" << std::endl;
@@ -38,10 +38,10 @@ int main(int argc, char *argv[])
     else
     {
         WakeOnLanImpl::MonitoringService monitoring(table, networkHandler);
-        monitoring.run();
         // sleep(4);
         table.insert(p0);
         std::cout << "inserted manager in table" << std::endl;
+        monitoring.run();
     }
     return 0;
 }

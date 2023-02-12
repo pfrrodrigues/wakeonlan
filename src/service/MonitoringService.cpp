@@ -17,6 +17,8 @@ namespace WakeOnLanImpl {
 
     void MonitoringService::run() {
         Config config = inetHandler->getDeviceConfig();
+        // TODO discovery service integratiom
+        inetHandler->changeStatus(ServiceGlobalStatus::Syncing);
         switch (config.getHandlerType())
         {
         case HandlerType::Manager:
