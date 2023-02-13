@@ -107,42 +107,42 @@ namespace WakeOnLanImpl {
 
         active = true;
         t = std::make_unique<std::thread>([this]() {
+            ServiceGlobalStatus status;
             Message *msg;
-            time_t timestamp = std::time(0);
+            time_t timestamp;
+            bool timerSet = false;
             int seq;
             while(active)
             {
-                switch (inetHandler->getGlobalStatus())
+                status = inetHandler->getGlobalStatus();
+                switch (status)
                 {
                 // has to wait 35s for a sleep status request message or else 
                 // assumes it should wait a new discovery message
                 case ServiceGlobalStatus::Syncing:
+                case ServiceGlobalStatus::Synchronized:
+                    if(!timerSet)
+                    {
+                        timestamp = std::time(0);
+                        timerSet = true;
+                    }
                     if(timestamp + 35 < std::time(0))
                     {
                         inetHandler->changeStatus(ServiceGlobalStatus::WaitingForSync);
+                        timerSet = false;
                         std::cout << "Timed out waiting for sleep status request, waiting new discovery msg" << std::endl;
                         break;
                     }
                     msg = inetHandler->getFromMonitoringQueue();
                     if(msg)
                     {
-                        seq = msg->msgSeqNum;
-                        inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
-                        Message answer = getSleepStatusRequest(seq);
-                        inetHandler->send(answer, msg->ip);
-                        std::cout << "Got sleep status request. "
-                                  << "Going to Synced state" << std::endl;
-                    }
-                    break;
-                case ServiceGlobalStatus::Synchronized:
-                    // check msg and answer 
-                    msg = inetHandler->getFromMonitoringQueue();
-                    if(msg)
-                    {
+                        if(status == ServiceGlobalStatus::Syncing)
+                            inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
                         seq = msg->msgSeqNum;
                         Message answer = getSleepStatusRequest(seq);
                         inetHandler->send(answer, msg->ip);
-                        std::cout << "Got sleep status request." << std::endl;
+                        timestamp = std::time(0); // reset timer 
+                        std::cout << "Got sleep status request. " << std::endl;
                     }
                     break;
                 default: // Unknown or WaitingForSync
