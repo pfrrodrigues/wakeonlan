@@ -81,7 +81,7 @@ namespace WakeOnLanImpl {
 
             std::cout <<"\033[?25l"           // hides cursor
                       <<"\033[s"              // saves cursor position
-                      <<"\033[" << lastSyncParticipants.size() + 1 << ";0f";          // set cursor position to line 3, col 0
+                      <<"\033[" << 2 << ";0f";          // set cursor position to line 3, col 0
             std::flush(std::cout);
             initializeDisplayTable();
             for (size_t i=0; i<lastSyncParticipants.size(); i++)
