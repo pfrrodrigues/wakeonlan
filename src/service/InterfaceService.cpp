@@ -88,6 +88,8 @@ namespace WakeOnLanImpl {
                       <<"\033[" << 3 << ";0f";          // set cursor position to line 3, col 0
             std::flush(std::cout);
             initializeDisplayTable();
+            for(int i=0; i<numParticipants; i++)
+                std::cout << std::endl;
             for (size_t i=0; i<lastSyncParticipants.size(); i++)
             {
                 std::string  status;

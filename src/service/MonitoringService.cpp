@@ -67,9 +67,9 @@ namespace WakeOnLanImpl {
                         sleeping_participants.push_back(participant.hostname);
 
                         // send sleep status request 
-                        std::cout << "Manager is sending sleep status request to "
-                                  << participant.hostname << " @ " 
-                                  << participant.ip << std::endl; 
+                        // std::cout << "Manager is sending sleep status request to "
+                        //           << participant.hostname << " @ " 
+                        //           << participant.ip << std::endl; 
                         Message message = getSleepStatusRequest(seq);
                         inetHandler->send(message, participant.ip);
                     }
@@ -86,9 +86,9 @@ namespace WakeOnLanImpl {
                     sleeping_participants.erase(std::find(sleeping_participants.begin(), 
                                                           sleeping_participants.end(), 
                                                           hostname));
-                    std::cout << "Manager got answer from "
-                              << msg->hostname << " @ "
-                              << msg->ip << std::endl;
+                    // std::cout << "Manager got answer from "
+                    //           << msg->hostname << " @ "
+                    //           << msg->ip << std::endl;
                 }
             }
         });
