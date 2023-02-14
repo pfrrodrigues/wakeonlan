@@ -126,7 +126,7 @@ namespace WakeOnLanImpl {
                         timestamp = std::time(0);
                         timerSet = true;
                     }
-                    if(timestamp + 35 < std::time(0))
+                    if(timestamp + 35 < std::time(0) && status == ServiceGlobalStatus::Syncing)
                     {
                         inetHandler->changeStatus(ServiceGlobalStatus::WaitingForSync);
                         timerSet = false;
