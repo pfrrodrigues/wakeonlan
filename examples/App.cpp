@@ -9,12 +9,12 @@ int main(int argc, char *argv[])
     std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
     networkHandler = std::make_shared<WakeOnLanImpl::NetworkHandler>(4000, config);
     struct WakeOnLanImpl::Table::Participant p0 = {.hostname = "picard",
-                                                   .ip = "192.168.0.110",
+                                                   .ip = "143.54.53.174",
                                                    .mac = "5c:cd:5b:4e:da:7c",
                                                    .status = WakeOnLanImpl::Table::ParticipantStatus::Awaken },
-                                             p1 = {.hostname = "p1",
-                                                   .ip = "127.0.0.1",
-                                                   .mac = "FF:FF:FF:FF:FF:FF",
+                                             p1 = {.hostname = "s-732-204-14",
+                                                   .ip = "143.54.55.32",
+                                                   .mac = "64:31:50:48:be:b5",
                                                    .status = WakeOnLanImpl::Table::ParticipantStatus::Sleeping },
                                              p2 = {.hostname = "p2",
                                                    .ip = "127.0.0.1",
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
         WakeOnLanImpl::MonitoringService monitoring(table, networkHandler);
         monitoring.run();
         sleep(1);
-        table.insert(p0);
+        table.insert(p1);
         std::cout << "inserted participant in table" << std::endl;
         // sleep(5);
         // table.insert(p1);
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     {
         WakeOnLanImpl::MonitoringService monitoring(table, networkHandler);
         // sleep(4);
-        table.insert(p0);
+        table.insert(p1);
         std::cout << "inserted manager in table" << std::endl;
         monitoring.run();
     }
