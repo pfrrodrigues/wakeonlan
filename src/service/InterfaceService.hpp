@@ -2,7 +2,6 @@
 #include <../src/common/Table.hpp>
 #include <../src/handler/NetworkHandler.hpp>
 #include <spdlog/spdlog.h>
-#include <tabulate/table.hpp>
 #include <pthread.h>
 
 namespace WakeOnLanImpl {
@@ -44,7 +43,7 @@ namespace WakeOnLanImpl {
         std::string parseInput(std::string cmd);
         std::string processWakeupCmd(std::string hostname);
 
-        tabulate::Table initializeDisplayTable();
+        void initializeDisplayTable();
         void runDisplayTable();
         static void * startDisplayTable(void * param);
         

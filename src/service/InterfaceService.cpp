@@ -61,57 +61,49 @@ namespace WakeOnLanImpl {
         return NULL;
     }
 
-    tabulate::Table ManagerInterfaceService::initializeDisplayTable()
+    void ManagerInterfaceService::initializeDisplayTable()
     {
-        tabulate::Table displayTable;
-        // add header
-        displayTable.add_row({"Hostname",
-                              "IP Address",
-                              "MAC Address",
-                              "Status"});
-        // format header
-        for (auto& cell : displayTable[0])
-            cell.format()
-                    .font_background_color(tabulate::Color::white)
-                    .font_color(tabulate::Color::white);
-        return displayTable;
+        // print header
+        std::cout << "Hostname | IP Address | MAC Address | Status\n";
+        return;
     }
 
     void ManagerInterfaceService::runDisplayTable()
     {
-        tabulate::Table display;
         std::cout << "\033[2J"; // clears terminal and moves cursor to (0,0)
+        // std::cout << "\n>> ";
+        std::flush(std::cout);
         int newNumParticipants;
         while (keepRunning)
         {
             newNumParticipants = 0;
             lastSyncParticipants = participantTable.get_participants();
-            display = initializeDisplayTable();
-            for (size_t i=0; i<lastSyncParticipants.size(); i++)
-            {
-                display.add_row({lastSyncParticipants[i].hostname,
-                                 lastSyncParticipants[i].ip,
-                                 lastSyncParticipants[i].mac,
-                                 lastSyncParticipants[i].status == Table::ParticipantStatus::Awaken ? "AWAKE" : "ASLEEP"});
-                display[i+1][3].format()
-                    .font_color(lastSyncParticipants[i].status == 
-                                Table::ParticipantStatus::Awaken ? tabulate::Color::green
-                                                                 : tabulate::Color::red) ; 
-                newNumParticipants++;    
-            }
 
             std::cout <<"\033[?25l"           // hides cursor
                       <<"\033[s"              // saves cursor position
-                      <<"\033[0;0H"           // sets cursor position to (0,0)
-                      << display << std::endl // prints table
-                      <<"\033[1B>> ";         // moves cursor 1 line down and draws "<< "
-            if(newNumParticipants == numParticipants)
-                std::cout << "\033[u";        // returns cursor to saved position     
+                      <<"\033[" << lastSyncParticipants.size() + 1 << ";0f";          // set cursor position to line 3, col 0
+            std::flush(std::cout);
+            initializeDisplayTable();
+            for (size_t i=0; i<lastSyncParticipants.size(); i++)
+            {
+                std::cout <<"\033[K"
+                          << lastSyncParticipants[i].hostname << " | "
+                          << lastSyncParticipants[i].ip << " | "
+                          << lastSyncParticipants[i].mac << " | "
+                          << (lastSyncParticipants[i].status == Table::ParticipantStatus::Awaken ? "AWAKE" : "ASLEEP") << "\n";
+                newNumParticipants++;    
+            }
+            std::cout << std::endl;
+
+            // std::cout << "\033[1B>> ";         // moves cursor 1 line down and draws "<< "
+            // if(newNumParticipants == numParticipants)
+            std::cout << "\033[u";        // returns cursor to saved position     
             std::cout << "\033[?25h";         // shows cursor
+            // std::cout << "<< ";
             std::flush(std::cout);  
 
             numParticipants = newNumParticipants;
-            sleep(DISPLAY_TABLE_REFRESH_RATE);
+            // sleep(DISPLAY_TABLE_REFRESH_RATE);
         }
     }
 

@@ -51,14 +51,12 @@ namespace WakeOnLanImpl {
     }
     
     std::vector<Table::Participant> Table::get_participants() {
-/*
         std::vector<Table::Participant> participants;
         std::unique_lock<std::mutex> lk(tableMutex);
         while (!updated) cv.wait(lk);
-        for(auto&& [name, p] : data)
-            participants.push_back(p);
+        for(auto& entry: data)
+            participants.push_back(entry.second);
         updated = false;
         return participants;
-*/
     }
 } // namespace WakeOnLanImpl
