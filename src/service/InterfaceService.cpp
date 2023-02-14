@@ -49,6 +49,10 @@ namespace WakeOnLanImpl {
         threads.push_back(table_th);
         threads.push_back(cmd_th);
 
+        std::cout << "\033[2J"     // clears terminal and moves cursor to (0,0)
+                  << "\033[1;0f";  // set cursor position to line 3, col 0
+        std::flush(std::cout);
+
         int ret;
         ret = pthread_create(&threads[0], NULL, &startDisplayTable, this);
         ret = pthread_create(&threads[1], NULL, &startCommandListener, this);
@@ -81,7 +85,7 @@ namespace WakeOnLanImpl {
 
             std::cout <<"\033[?25l"           // hides cursor
                       <<"\033[s"              // saves cursor position
-                      <<"\033[" << 2 << ";0f";          // set cursor position to line 3, col 0
+                      <<"\033[" << 3 << ";0f";          // set cursor position to line 3, col 0
             std::flush(std::cout);
             initializeDisplayTable();
             for (size_t i=0; i<lastSyncParticipants.size(); i++)
