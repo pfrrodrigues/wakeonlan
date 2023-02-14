@@ -32,6 +32,7 @@ namespace WakeOnLanImpl {
                     }
                 }
             }
+            socket.closeSocket();
         });
     }
 
