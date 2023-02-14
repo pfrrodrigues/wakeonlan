@@ -43,8 +43,7 @@ namespace WakeOnLanImpl {
             bool timerSet;
             int seq = 0;
             bool updated = false;
-            std::vector<std::string> sleeping_participants,
-                                     awaken_participants;
+            std::vector<std::string> sleeping_participants;
             Message *msg;
             while (active)
             {
@@ -59,14 +58,8 @@ namespace WakeOnLanImpl {
                     for(auto& hostname : sleeping_participants)
                         table.update(Table::ParticipantStatus::Sleeping, hostname);
                     
-                    // participants in awaken_participants have answered the last call
-                    // and are considered to be Awaken.
-                    for(auto& hostname : awaken_participants)
-                        table.update(Table::ParticipantStatus::Awaken, hostname);
-                    
                     // resets vectors
                     sleeping_participants.clear();
-                    awaken_participants.clear();
                     for(auto& participant: table.get_participants_monitoring())
                     {
                         // sleeping_participants is initialized with every participant
@@ -89,7 +82,7 @@ namespace WakeOnLanImpl {
                     // erase participant from sleeping_participants and puts 
                     // it in awaken_participants
                     std::string hostname = msg->hostname;
-                    awaken_participants.push_back(hostname);
+                    table.update(Table::ParticipantStatus::Awaken, msg->hostname);
                     sleeping_participants.erase(std::find(sleeping_participants.begin(), 
                                                           sleeping_participants.end(), 
                                                           hostname));
