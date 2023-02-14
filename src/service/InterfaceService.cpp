@@ -89,7 +89,9 @@ namespace WakeOnLanImpl {
             std::flush(std::cout);
             initializeDisplayTable();
             for(int i=0; i<numParticipants; i++)
-                std::cout << std::endl;
+                std::cout << "\033[K\n";
+            if(numParticipants)
+                std::cout << "\033[" << numParticipants << "A";
             for (size_t i=0; i<lastSyncParticipants.size(); i++)
             {
                 std::string  status;
