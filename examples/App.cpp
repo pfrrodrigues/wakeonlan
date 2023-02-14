@@ -1,4 +1,3 @@
-#include <tabulate/table.hpp>
 #include <../src/common/Table.hpp>
 #include <../src/service/InterfaceService.hpp>
 #include <iostream>
@@ -29,9 +28,9 @@ int main(int argc, char *argv[])
 
     sleep(2);
     table.insert(p0);
-    sleep(2);
+    sleep(5);
     table.insert(p1);
-    sleep(2);
+    sleep(5);
     table.insert(p2);
     while(true){}
 
