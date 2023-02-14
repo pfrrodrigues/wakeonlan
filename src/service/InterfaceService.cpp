@@ -90,11 +90,25 @@ namespace WakeOnLanImpl {
             initializeDisplayTable();
             for (size_t i=0; i<lastSyncParticipants.size(); i++)
             {
+                std::string  status;
+                switch (lastSyncParticipants[i].status) {
+                    case Table::ParticipantStatus::Awaken:
+                        status = "AWAKEN";
+                        break;
+                    case Table::ParticipantStatus::Sleeping:
+                        status = "SLEEPING";
+                        break;
+                    case Table::ParticipantStatus::Unknown:
+                        status = "UNKNOWN";
+                        break;
+                    default:
+                        break;
+                }
                 std::cout <<"\033[K"
                           << lastSyncParticipants[i].hostname << " | "
                           << lastSyncParticipants[i].ip << " | "
                           << lastSyncParticipants[i].mac << " | "
-                          << (lastSyncParticipants[i].status == Table::ParticipantStatus::Awaken ? "AWAKE" : "ASLEEP") << "\n";
+                          << status << "\n";
                 newNumParticipants++;    
             }
             std::cout << std::endl;
