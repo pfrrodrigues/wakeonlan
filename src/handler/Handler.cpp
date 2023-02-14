@@ -29,8 +29,11 @@ void Handler::run() {}
 
 void ManagerHandler::run() {
     discoveryService->run();
+    sleep(1);
+    monitoringService->run();
 }
 
 void ParticipantHandler::run() {
     discoveryService->run();
+    monitoringService->run();
 }

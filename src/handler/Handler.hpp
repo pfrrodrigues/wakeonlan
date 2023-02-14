@@ -4,7 +4,6 @@
 #include <../src/common/Table.hpp>
 #include <../src/handler/NetworkHandler.hpp>
 #include <../src/service/DiscoveryService.hpp>
-#include <../src/service/ManagementService.hpp>
 #include <../src/service/MonitoringService.hpp>
 #include <../src/service/InterfaceService.hpp>
 
@@ -22,6 +21,7 @@ public:
     virtual ~ManagerHandler();
 private:
     std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
+    std::unique_ptr<WakeOnLanImpl::MonitoringService> monitoringService;
     std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
     WakeOnLanImpl::Table& table;
     Config config;
@@ -34,6 +34,7 @@ public:
     virtual ~ParticipantHandler();
 private:
     std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
+    std::unique_ptr<WakeOnLanImpl::MonitoringService> monitoringService;
     std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
     WakeOnLanImpl::Table& table;
     Config config;

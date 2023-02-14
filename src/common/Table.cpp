@@ -23,13 +23,17 @@ namespace WakeOnLanImpl {
     }
 
     bool Table::update(const ParticipantStatus &status, const std::string &hostname) {
-        bool returnCode = false;
+	bool returnCode = false;
         std::lock_guard<std::mutex> lk(tableMutex);
-        if (auto it = data.find(hostname); it != data.end()) {
-            it->second.status = status;
+        auto it = data.find(hostname);
+        if (it != data.end()) {
+            if(it->second.status != status)
+            {
+                it->second.status = status;
+                updated = true;
+                cv.notify_one();
+            }
             returnCode = true;
-            updated = true;
-            cv.notify_one();
         }
         return returnCode;
     }
@@ -46,13 +50,21 @@ namespace WakeOnLanImpl {
         return returnCode;
     }
     
-    std::vector<Table::Participant> Table::get_participants() {
+    std::vector<Table::Participant> Table::get_participants_interface() {
         std::vector<Table::Participant> participants;
         std::unique_lock<std::mutex> lk(tableMutex);
         while (!updated) cv.wait(lk);
-        for(auto&& [name, p] : data)
-            participants.push_back(p);
+        for(auto& entry: data)
+            participants.push_back(entry.second);
         updated = false;
+        return participants;
+    }
+
+    std::vector<Table::Participant> Table::get_participants_monitoring() {
+        std::vector<Table::Participant> participants;
+        std::unique_lock<std::mutex> lk(tableMutex);
+        for(auto& entry: data)
+            participants.push_back(entry.second);
         return participants;
     }
 } // namespace WakeOnLanImpl
