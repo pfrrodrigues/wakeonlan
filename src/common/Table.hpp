@@ -25,6 +25,7 @@ namespace WakeOnLanImpl {
         enum class ParticipantStatus {
             Awaken = 0,       ///< The participant is answering to the services requests.
             Sleeping = 1,     ///< The participant is part of the group and is not answering to the service requests.
+            Unknown = 2
         };
 
         /**
@@ -89,7 +90,9 @@ namespace WakeOnLanImpl {
          * 
          * @return A vector of registered participants.  
          */
-        std::vector<Participant> get_participants();
+        std::vector<Participant> get_participants_monitoring();
+
+        std::vector<Participant> get_participants_interface();
     private:
         Table() = default;
 
@@ -100,6 +103,7 @@ namespace WakeOnLanImpl {
         const Table &operator =(const Table &table);
 
         std::mutex tableMutex;                              ///< The mutex to manage access to the table representation.
+        std::mutex ifaceServMutex;                              ///< The mutex to manage access to the table representation.
         std::shared_ptr<spdlog::logger> log;                ///< The Table logger.
         std::unordered_map<std::string, Participant> data;  ///< The table representation.
     };
