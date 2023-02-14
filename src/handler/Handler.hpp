@@ -22,6 +22,7 @@ public:
 private:
     std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
     std::unique_ptr<WakeOnLanImpl::MonitoringService> monitoringService;
+    std::unique_ptr<WakeOnLanImpl::ManagerInterfaceService> interfaceService;
     std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
     WakeOnLanImpl::Table& table;
     Config config;
@@ -35,6 +36,7 @@ public:
 private:
     std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
     std::unique_ptr<WakeOnLanImpl::MonitoringService> monitoringService;
+    std::unique_ptr<WakeOnLanImpl::ParticipantInterfaceService> interfaceService;
     std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
     WakeOnLanImpl::Table& table;
     Config config;

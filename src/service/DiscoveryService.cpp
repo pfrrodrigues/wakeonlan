@@ -118,6 +118,17 @@ namespace WakeOnLanImpl {
                                         strncpy(message.hostname, config.getHostname().c_str(), config.getHostname().size());
                                         strncpy(message.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
                                         strncpy(message.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
+
+                                        /* Add manager on the table */
+                                        {
+                                            Table::Participant p;
+                                            p.ip = m->ip;
+                                            p.hostname = m->hostname;
+                                            p.mac = m->mac;
+                                            p.status = Table::ParticipantStatus::Awaken;
+                                            table.insert(p);
+                                        }
+
                                         inetHandler->send(message, m->ip);
                                         inetHandler->changeStatus(Syncing);
                                     }

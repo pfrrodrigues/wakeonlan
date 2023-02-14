@@ -30,12 +30,13 @@ ParticipantHandler::~ParticipantHandler() {
 void Handler::run() {}
 
 void ManagerHandler::run() {
+    interfaceService->run();
     discoveryService->run();
-    sleep(1);
     monitoringService->run();
 }
 
 void ParticipantHandler::run() {
+    interfaceService->run();
     discoveryService->run();
     monitoringService->run();
 }
