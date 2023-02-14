@@ -35,7 +35,10 @@ namespace WakeOnLanImpl {
             t->join();
 
         active = true;
+        this->log = spdlog::get("wakeonlan-api");
+
         t = std::make_unique<std::thread>([this]() {
+            log->info("Start Monitoring service");
             time_t timestamp;
             bool timerSet;
             int seq = 0;
@@ -78,7 +81,7 @@ namespace WakeOnLanImpl {
                         inetHandler->send(message, participant.ip);
                     }
                     seq++;
-                    timestamp = std::time(0); // reset timer
+                    timestamp = std::time(nullptr); // reset timer
                 }
                 msg = inetHandler->getFromMonitoringQueue();
                 if(msg) // if there is an answer from a participant 
@@ -104,7 +107,10 @@ namespace WakeOnLanImpl {
             t->join();
 
         active = true;
+        this->log = spdlog::get("wakeonlan-api");
+
         t = std::make_unique<std::thread>([this]() {
+            log->info("Start Monitoring service");
             ServiceGlobalStatus status;
             Message *msg;
             time_t timestamp;
@@ -121,10 +127,10 @@ namespace WakeOnLanImpl {
                 case ServiceGlobalStatus::Synchronized:
                     if(!timerSet)
                     {
-                        timestamp = std::time(0);
+                        timestamp = std::time(nullptr);
                         timerSet = true;
                     }
-                    if(timestamp + 35 < std::time(0) && status == ServiceGlobalStatus::Syncing)
+                    if(timestamp + 35 < std::time(nullptr) && status == ServiceGlobalStatus::Syncing)
                     {
                         inetHandler->changeStatus(ServiceGlobalStatus::WaitingForSync);
                         timerSet = false;
@@ -139,7 +145,7 @@ namespace WakeOnLanImpl {
                         seq = msg->msgSeqNum;
                         Message answer = getSleepStatusRequest(seq);
                         inetHandler->send(answer, msg->ip);
-                        timestamp = std::time(0); // reset timer 
+                        timestamp = std::time(nullptr); // reset timer
                         std::cout << "Got sleep status request. " << std::endl;
                     }
                     break;

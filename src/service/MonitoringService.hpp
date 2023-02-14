@@ -43,6 +43,7 @@ namespace WakeOnLanImpl {
         std::shared_ptr<NetworkHandler> inetHandler;
         std::unique_ptr<std::thread> t;
         bool active;
+        std::shared_ptr<spdlog::logger> log;
     };
     
 } // namespace WakeOnLanImpl
