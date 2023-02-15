@@ -69,10 +69,10 @@ namespace WakeOnLanImpl {
     void ManagerInterfaceService::initializeDisplayTable()
     {
         // print header
-        std::cout << std::left << std::setw(50) << std::setfill(' ') << "HOSTNAME" << " | ";
-        std::cout << std::left << std::setw(20) << std::setfill(' ') << "IP ADDRESS" << " | ";
-        std::cout << std::left << std::setw(20) << std::setfill(' ') << "MAC ADDRESS" << " | ";
-        std::cout << std::left << std::setw(10) << std::setfill(' ') << "STATUS" << "\n";
+        std::cout << "\033[30;47m" << std::left << std::setw(20) << std::setfill(' ') << "HOSTNAME" << "\033[0m ";
+        std::cout << "\033[30;47m" << std::left << std::setw(20) << std::setfill(' ') << "IP ADDRESS" << "\033[0m ";
+        std::cout << "\033[30;47m" << std::left << std::setw(20) << std::setfill(' ') << "MAC ADDRESS" << "\033[0m ";
+        std::cout << "\033[30;47m" << std::left << std::setw(10) << std::setfill(' ') << "STATUS" << "\033[0m\n";
         return;
     }
 
@@ -101,21 +101,21 @@ namespace WakeOnLanImpl {
                 std::string  status;
                 switch (lastSyncParticipants[i].status) {
                     case Table::ParticipantStatus::Awaken:
-                        status = "AWAKEN";
+                        status = "\033[92mAWAKEN\033[0m";
                         break;
                     case Table::ParticipantStatus::Sleeping:
-                        status = "SLEEPING";
+                        status = "\033[91mSLEEPING\033[0m";
                         break;
                     case Table::ParticipantStatus::Unknown:
-                        status = "UNKNOWN";
+                        status = "\033[93mUNKNOWN\033[0m";
                         break;
                     default:
                         break;
                 }
                 std::cout <<"\033[K";
-                std::cout << std::left << std::setw(50) << std::setfill(' ') << lastSyncParticipants[i].hostname << " | ";
-                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].ip << " | ";
-                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].mac << " | ";
+                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].hostname << "|";
+                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].ip << "|";
+                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].mac << "|";
                 std::cout << std::left << std::setw(10) << std::setfill(' ') << status << "\n";
                 newNumParticipants++;    
             }
