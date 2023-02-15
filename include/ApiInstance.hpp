@@ -2,17 +2,21 @@
 #include <memory>
 #include <Config.hpp>
 
-class ApiInstanceImpl;
+namespace WakeOnLanImpl {
+    class ApiInstanceImpl;
+}
 
-class ApiInstance {
-public:
-    explicit ApiInstance(const Config &config);
+namespace WakeOnLan {
+    class ApiInstance {
+    public:
+        explicit ApiInstance(const Config &config);
 
-    ~ApiInstance();
+        ~ApiInstance();
 
-    void run();
+        void run();
 
-    void stop();
-private:
-    std::unique_ptr<ApiInstanceImpl> impl;
-};
+        void stop();
+    private:
+        std::unique_ptr<WakeOnLanImpl::ApiInstanceImpl> impl;
+    };
+} // namespace WakeOnLan

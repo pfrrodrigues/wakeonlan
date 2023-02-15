@@ -29,4 +29,4 @@ namespace WakeOnLanImpl {
         std::time_t lastTimestamp;
         std::shared_ptr<spdlog::logger> log;
     };
-}
+} // namespace WakeOnLanImpl

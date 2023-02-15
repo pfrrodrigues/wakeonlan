@@ -27,12 +27,12 @@ int main(int argc, char** argv) {
      * <> - mandatory
      * ./app ['manager'] <interface>
      * */
-    Config config(argv, argc);
+    WakeOnLan::Config config(argv, argc);
 
     /*************************************
     * API instantiation
     *************************************/
-    ApiInstance api(config);
+    WakeOnLan::ApiInstance api(config);
 
     /*************************************
     * Run the API

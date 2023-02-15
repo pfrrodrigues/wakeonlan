@@ -7,7 +7,7 @@ namespace WakeOnLanImpl {
     UdpSocket::UdpSocket(const std::string &ip, const uint16_t &port) {
         if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
             perror("socket (AF_INET, SOCK_DGRAM, 0)");
-            exit(1);    // TODO: this must be handled
+            exit(1);
         }
 
         if (fcntl(fd, F_SETFL, O_NONBLOCK) != 0) {
@@ -17,12 +17,12 @@ namespace WakeOnLanImpl {
         u_int yes = 1;
         if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (char*)&yes, sizeof(yes)) == -1) {
             perror("setsockopt (SO_REUSEPORT)");
-            exit(1);    // TODO: this must be handled
+            exit(1);
         }
 
         if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, (char*)&yes, sizeof(yes)) == -1) {
             perror("setsockopt (SO_BROADCAST)");
-            exit(1);    // TODO: this must be handled
+            exit(1);
         }
 
         struct sockaddr_in destSockAddr{};

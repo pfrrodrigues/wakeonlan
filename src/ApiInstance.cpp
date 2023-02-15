@@ -2,22 +2,23 @@
 #include <ApiInstance.hpp>
 #include <../src/impl/ApiInstanceImpl.hpp>
 #include <../src/common/Table.hpp>
+using namespace WakeOnLanImpl;
 
+namespace WakeOnLan {
+    ApiInstance::ApiInstance(const Config &config)
+            : impl(std::make_unique<WakeOnLanImpl::ApiInstanceImpl>(config)) {
+        std::mutex mtx;
+        std::lock_guard<std::mutex> lk(mtx);
+        Table::get();
+    }
 
+    ApiInstance::~ApiInstance() {}
 
-ApiInstance::ApiInstance(const Config &config)
-        : impl(std::make_unique<ApiInstanceImpl>(config)) {
-    std::mutex mtx;
-    std::lock_guard<std::mutex> lk(mtx);
-    WakeOnLanImpl::Table::get();
-}
+    void ApiInstance::run() {
+        impl->run();
+    }
 
-ApiInstance::~ApiInstance() {}
-
-void ApiInstance::run() {
-    impl->run();
-}
-
-void ApiInstance::stop() {
-    impl->stop();
+    void ApiInstance::stop() {
+        impl->stop();
+    }
 }

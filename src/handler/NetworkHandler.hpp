@@ -9,6 +9,8 @@
 #include <../include/Config.hpp>
 #include <spdlog/spdlog.h>
 
+using namespace WakeOnLan;
+
 namespace WakeOnLanImpl {
 
     enum ServiceGlobalStatus {
