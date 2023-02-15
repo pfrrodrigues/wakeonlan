@@ -1,5 +1,5 @@
 # wakeonlan
-A friendly library for managing and ingress on Wake-on-LAN groups.
+A friendly C++ library for managing and ingress on Wake-on-LAN groups.
 
 ## Platforms
 * Linux
