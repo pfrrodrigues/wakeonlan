@@ -15,6 +15,8 @@ namespace WakeOnLanImpl {
 
         void run();
 
+        void stop();
+
         Table &table;
         std::shared_ptr<NetworkHandler> inetHandler;
     private:

@@ -165,5 +165,9 @@ namespace WakeOnLanImpl {
         return message;
     }
 
+    void MonitoringService::stop() {
+        log->info("Stop Monitoring service");
+    }
+
 
 } // namespace WakeOnLanImpl

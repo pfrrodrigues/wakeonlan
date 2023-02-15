@@ -14,6 +14,8 @@ namespace WakeOnLanImpl {
         ~MonitoringService();
         
         void run();
+
+        void stop();
     private:
         /**
          * For every entry in table, if participant is:

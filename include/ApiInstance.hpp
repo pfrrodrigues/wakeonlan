@@ -11,6 +11,8 @@ public:
     ~ApiInstance();
 
     void run();
+
+    void stop();
 private:
     std::unique_ptr<ApiInstanceImpl> impl;
 };

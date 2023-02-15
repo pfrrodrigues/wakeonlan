@@ -46,3 +46,8 @@ void ApiInstanceImpl::run() {
     log->info("Starting handler");
     handler->run();
 }
+
+void ApiInstanceImpl::stop() {
+    handler->stop();
+    log->info("Stopping handler");
+}

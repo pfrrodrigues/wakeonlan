@@ -31,14 +31,31 @@ ParticipantHandler::~ParticipantHandler() {
 
 void Handler::run() {}
 
+void Handler::stop() {}
+
 void ManagerHandler::run() {
     interfaceService->run();
     discoveryService->run();
     monitoringService->run();
 }
 
+void ManagerHandler::stop() {
+    networkHandler->stop();
+    discoveryService->stop();
+    monitoringService->stop();
+    interfaceService->stop();
+}
+
 void ParticipantHandler::run() {
     interfaceService->run();
     discoveryService->run();
     monitoringService->run();
+}
+
+void ParticipantHandler::stop() {
+    networkHandler->stop();
+    discoveryService->stop();
+    monitoringService->stop();
+    interfaceService->stop();
+    sleep(1);
 }

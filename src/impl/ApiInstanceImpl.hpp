@@ -8,6 +8,7 @@ public:
     explicit ApiInstanceImpl(const Config &config);
     ~ApiInstanceImpl();
     void run();
+    void stop();
 private:
     Config config;
     std::unique_ptr<Handler> handler;

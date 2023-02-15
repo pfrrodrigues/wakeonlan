@@ -9,14 +9,16 @@
 
 class Handler {
 public:
-    virtual void run();
     Handler();
     virtual ~Handler();
+    virtual void run();
+    virtual void stop();
 };
 
 class ManagerHandler : public Handler {
 public:
     void run() override;
+    void stop() override;
     explicit ManagerHandler(const Config &config, WakeOnLanImpl::Table& = WakeOnLanImpl::Table::get());
     virtual ~ManagerHandler();
 private:
@@ -31,6 +33,7 @@ private:
 class ParticipantHandler : public Handler {
 public:
     void run() override;
+    void stop() override;
     explicit ParticipantHandler(const Config &config, WakeOnLanImpl::Table& = WakeOnLanImpl::Table::get());
     virtual ~ParticipantHandler();
 private:

@@ -8,11 +8,13 @@ namespace WakeOnLanImpl {
     NetworkHandler::NetworkHandler(const uint32_t &port, const Config &cfg)
     : port(port),
       config(cfg),
-      globalStatus(Unknown)
+      globalStatus(Unknown),
+      active(false)
     {
         t = std::make_unique<std::thread>([this, port](){
+            active = true;
             UdpSocket socket(LOCAL_SERVER_ADDRESS, port); // TODO: this must be closed
-            while (true) {
+            while (active) {
                 Message response{};
                 response.type = Type::Unknown;
                 socket.receive(&response);
@@ -144,4 +146,9 @@ namespace WakeOnLanImpl {
     }
 
     const Config &NetworkHandler::getDeviceConfig() { return config; }
+
+    void NetworkHandler::stop() {
+        log->info("Stop Network handler");
+        active = false;
+    }
 } // namespace WakeOnLanImpl;

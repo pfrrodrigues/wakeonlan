@@ -12,9 +12,8 @@ namespace WakeOnLanImpl {
 
     void InterfaceService::stop()
     {
+        log->info("Stop Interface service");
         keepRunning = false;
-        for (auto thread : threads)
-            pthread_join(thread, NULL);
     }
 
     void InterfaceService::run() {}
@@ -44,7 +43,8 @@ namespace WakeOnLanImpl {
     {
         keepRunning = true;
         numParticipants = 0;
-
+        log = spdlog::get("wakeonlan-api");
+        log->info("Start Interface service");
         pthread_t table_th, cmd_th;
         threads.push_back(table_th);
         threads.push_back(cmd_th);
@@ -195,7 +195,8 @@ namespace WakeOnLanImpl {
     void ParticipantInterfaceService::run()
     {
         keepRunning = true;
-
+        log = spdlog::get("wakeonlan-api");
+        log->info("Start Interface service");
         pthread_t cmd_th;
         threads.push_back(cmd_th);
 
@@ -236,6 +237,7 @@ namespace WakeOnLanImpl {
                       << "\033[K";  // clears previous input 
             std::flush(std::cout);
         }
+        processExitCmd();
     }
 
     std::string ParticipantInterfaceService::parseInput(std::string cmd)

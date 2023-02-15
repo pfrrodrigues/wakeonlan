@@ -158,4 +158,8 @@ namespace WakeOnLanImpl {
                 break;
         }
     }
+
+    void DiscoveryService::stop() {
+        log->info("Stop Discovery service");
+    }
 }

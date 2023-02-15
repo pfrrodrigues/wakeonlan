@@ -87,6 +87,8 @@ namespace WakeOnLanImpl {
         void changeStatus(const ServiceGlobalStatus &gs);
 
         const ServiceGlobalStatus& getGlobalStatus();
+
+        void stop();
     private:
         std::unique_ptr<std::thread> t;         ///< The thread used to receive messages.
         std::mutex inetMutex;                   ///< The mutex for controlling internal issues.
@@ -99,5 +101,6 @@ namespace WakeOnLanImpl {
         ServiceGlobalStatus globalStatus;
         std::mutex gsMutex;
         std::shared_ptr<spdlog::logger> log;
+        bool active;
     };
 } // namespace WakeOnLanImpl
