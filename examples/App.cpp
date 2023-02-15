@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
      * Example calling syntax
      * [] - optional
      * <> - mandatory
-     * ./app ['manager'] <interface>
+     * ./wolapp ['manager'] <interface>
      * */
     const int argSize = argc - 1;
     WakeOnLan::Config config(&argv[1], argSize);
