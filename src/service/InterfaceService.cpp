@@ -1,5 +1,6 @@
 #include <../src/service/InterfaceService.hpp>
 #include <iostream>
+#include <iomanip>
 #include <unistd.h>
 
 namespace WakeOnLanImpl {
@@ -68,7 +69,10 @@ namespace WakeOnLanImpl {
     void ManagerInterfaceService::initializeDisplayTable()
     {
         // print header
-        std::cout << "Hostname | IP Address | MAC Address | Status\n";
+        std::cout << std::left << std::setw(50) << std::setfill(' ') << "HOSTNAME" << " | ";
+        std::cout << std::left << std::setw(20) << std::setfill(' ') << "IP ADDRESS" << " | ";
+        std::cout << std::left << std::setw(20) << std::setfill(' ') << "MAC ADDRESS" << " | ";
+        std::cout << std::left << std::setw(10) << std::setfill(' ') << "STATUS" << "\n";
         return;
     }
 
@@ -108,11 +112,11 @@ namespace WakeOnLanImpl {
                     default:
                         break;
                 }
-                std::cout <<"\033[K"
-                          << lastSyncParticipants[i].hostname << " | "
-                          << lastSyncParticipants[i].ip << " | "
-                          << lastSyncParticipants[i].mac << " | "
-                          << status << "\n";
+                std::cout <<"\033[K";
+                std::cout << std::left << std::setw(50) << std::setfill(' ') << lastSyncParticipants[i].hostname << " | ";
+                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].ip << " | ";
+                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].mac << " | ";
+                std::cout << std::left << std::setw(10) << std::setfill(' ') << status << "\n";
                 newNumParticipants++;    
             }
             std::cout << std::endl;
