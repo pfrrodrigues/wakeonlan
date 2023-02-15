@@ -204,6 +204,14 @@ namespace WakeOnLanImpl {
         ret = pthread_create(&threads[0], NULL, &startCommandListener, this);
     }
 
+    void ParticipantInterfaceService::stop()
+    {
+        // send exit message
+        processExitCmd();
+        // normal stop 
+        InterfaceService::stop();
+    }
+
     void * ParticipantInterfaceService::startCommandListener(void * param)
     {
         ParticipantInterfaceService *obj = (ParticipantInterfaceService *) param;

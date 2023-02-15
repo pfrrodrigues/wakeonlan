@@ -60,6 +60,7 @@ namespace WakeOnLanImpl {
         ~ParticipantInterfaceService() = default;
     
         void run() override;
+        void stop();
     private:
         static void * startCommandListener(void * param);
         void runCommandListener();
