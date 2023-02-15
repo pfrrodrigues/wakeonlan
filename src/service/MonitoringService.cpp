@@ -133,8 +133,11 @@ namespace WakeOnLanImpl {
                     msg = inetHandler->getFromMonitoringQueue();
                     if(msg)
                     {
-                        if(status == ServiceGlobalStatus::Syncing)
+                        if(status == ServiceGlobalStatus::Syncing) {
                             inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
+                            log->info("Participant has joined the group managed by IP={} MAC={}",
+                                      msg->ip, msg->mac);
+                        }
                         seq = msg->msgSeqNum;
                         Message answer = getSleepStatusRequest(seq);
                         inetHandler->send(answer, msg->ip);

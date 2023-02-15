@@ -44,6 +44,7 @@ void ManagerHandler::stop() {
     discoveryService->stop();
     monitoringService->stop();
     interfaceService->stop();
+    sleep(2);
 }
 
 void ParticipantHandler::run() {
@@ -57,5 +58,5 @@ void ParticipantHandler::stop() {
     discoveryService->stop();
     monitoringService->stop();
     interfaceService->stop();
-    sleep(1);
+    sleep(2);
 }
