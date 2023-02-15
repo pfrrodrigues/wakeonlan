@@ -26,12 +26,18 @@ namespace WakeOnLanImpl {
                 if (response.type != Type::Unknown) {
                     switch (response.type) {
                         case Type::SleepStatusRequest:
+                        {
+                            std::lock_guard<std::mutex> lk(inetMutex);
                             monitoringQueue.push(response);
-                            break;
+                        }
+                        break;
                         case Type::SleepServiceDiscovery:
                         case Type::SleepServiceExit:
+                        {
+                            std::lock_guard<std::mutex> lk(inetMutex);
                             discoveryQueue.push(response);
-                            break;
+                        }
+                        break;
                         default:
                             log->warn("Network handler (internal): received a message with unknown type");
                             break;
