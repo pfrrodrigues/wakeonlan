@@ -127,7 +127,8 @@ namespace WakeOnLanImpl {
                     {
                         inetHandler->changeStatus(ServiceGlobalStatus::WaitingForSync);
                         timerSet = false;
-                        std::cout << "Timed out waiting for sleep status request, waiting new discovery msg" << std::endl;
+                        // std::cout << "Timed out waiting for sleep status request, waiting new discovery msg" << std::endl;
+                        log->info("Participant timedout waiting for sleep status request. Waiting for new sleep service discovery message");
                         break;
                     }
                     msg = inetHandler->getFromMonitoringQueue();
@@ -142,7 +143,7 @@ namespace WakeOnLanImpl {
                         Message answer = getSleepStatusRequest(seq);
                         inetHandler->send(answer, msg->ip);
                         timestamp = std::time(nullptr); // reset timer
-                        std::cout << "Got sleep status request. " << std::endl;
+                        // std::cout << "Got sleep status request. " << std::endl;
                     }
                     break;
                 default: // Unknown or WaitingForSync
