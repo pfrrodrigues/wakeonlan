@@ -15,6 +15,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/s
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 target_link_libraries(${PROJECT_NAME} spdlog pthread)
 
+# SHARED LIBRARY
+add_library(${PROJECT_NAME}_static STATIC ${WAKEONLAN_API_SOURCES} ${WAKEONLAN_API_HEADERS})
+target_include_directories(${PROJECT_NAME}_static PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+target_include_directories(${PROJECT_NAME}_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
+target_link_libraries(${PROJECT_NAME}_static spdlog pthread)
+
 file(GLOB APP_FILES examples/App.cpp ${WAKEONLAN_API_HEADERS})
 add_executable(wolapp ${APP_FILES})
 target_link_libraries(wolapp ${PROJECT_NAME})
