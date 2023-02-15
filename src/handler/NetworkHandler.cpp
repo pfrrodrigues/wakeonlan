@@ -11,9 +11,13 @@ namespace WakeOnLanImpl {
       globalStatus(Unknown),
       active(false)
     {
+        log = spdlog::get("wakeonlan-api");
+        log->info("Start Network handler");
+
         t = std::make_unique<std::thread>([this, port](){
-            active = true;
-            UdpSocket socket(LOCAL_SERVER_ADDRESS, port); // TODO: this must be closed
+            this->active = true;
+            UdpSocket socket(LOCAL_SERVER_ADDRESS, port);
+            log->info("Network Handler (internal): listening on port {}", port);
             while (active) {
                 Message response{};
                 response.type = Type::Unknown;
@@ -28,13 +32,13 @@ namespace WakeOnLanImpl {
                         case Type::SleepServiceExit:
                             discoveryQueue.push(response);
                             break;
-                        case Type::Unknown:
                         default:
                             break;
                     }
                 }
             }
             socket.closeSocket();
+            log->info("Network handler (internal): listener socket is closed");
         });
     }
 
@@ -148,7 +152,8 @@ namespace WakeOnLanImpl {
     const Config &NetworkHandler::getDeviceConfig() { return config; }
 
     void NetworkHandler::stop() {
-        log->info("Stop Network handler");
         active = false;
+        sleep(1);
+        log->info("Stop Network handler");
     }
 } // namespace WakeOnLanImpl;
