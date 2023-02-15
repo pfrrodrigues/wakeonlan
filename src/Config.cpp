@@ -17,15 +17,15 @@ namespace WakeOnLan {
     Config::Config(char **params, const int &quantity)
             : handlerType(Participant) {
         try {
-            if (quantity < 2) {
+            if (quantity < 1) {
                 std::stringstream ss;
-                ss << "ConfigParserException: few arguments, but application expects 2 or 3.\n";
+                ss << "ConfigParserException: few arguments, but application expects 1 or 2.\n";
                 ss << "./app ['manager'] <interface>";
                 throw ConfigParserException(ss.str());
             }
 
-            if (quantity == 3) {
-                std::string arg(params[1]);
+            if (quantity == 2) {
+                std::string arg(params[0]);
                 if (arg != "manager") {
                     std::stringstream ss;
                     ss << "ConfigParserException: error in interpret handler type '";
@@ -34,10 +34,10 @@ namespace WakeOnLan {
                     throw ConfigParserException(ss.str());
                 }
                 handlerType = Manager;
-                interface = params[2];
+                interface = params[1];
             }
             else {
-                interface = params[1];
+                interface = params[0];
             }
 
             /* Get the MAC address */
