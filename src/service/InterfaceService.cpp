@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <unistd.h>
+#include <signal.h>
 
 namespace WakeOnLanImpl {
     // InterfaceService
@@ -146,7 +147,8 @@ namespace WakeOnLanImpl {
         while(keepRunning)
         {
             std::cout << ">> ";
-            std::getline(std::cin, cmd);
+            if(!std::getline(std::cin, cmd))
+                kill(getpid(), SIGINT);
             response = parseInput(cmd);
             std::cout << "\033[2A"  // moves cursor 2 lines up
                       << "\033[K"   // clears line 
@@ -241,7 +243,8 @@ namespace WakeOnLanImpl {
         while(keepRunning)
         {
             std::cout << ">> ";
-            std::getline(std::cin, cmd);
+            if(!std::getline(std::cin, cmd))
+                kill(getpid(), SIGINT);
             response = parseInput(cmd);
             std::cout << "\033[2A"  // moves cursor 2 lines up
                       << "\033[K"   // clears line 
