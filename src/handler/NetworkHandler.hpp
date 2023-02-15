@@ -13,11 +13,15 @@ using namespace WakeOnLan;
 
 namespace WakeOnLanImpl {
 
+    /**
+    * @enum ServiceGlobalStatus
+    * The global status of the services. Used by the API services for controlling their internal behavior.
+    */
     enum ServiceGlobalStatus {
-        WaitingForSync = 0,
-        Syncing = 1,
-        Synchronized = 2,
-        Unknown = 3
+        WaitingForSync = 0,     ///< Indicates a SleepServiceDiscovery request was not received yet.
+        Syncing = 1,            ///< Indicates a SleepServiceDiscovery request was received and a response to that was sent.
+        Synchronized = 2,       ///< Indicates a SleepStatusRequest was receive. At this point, a participant has sure the manager add it on the group table.
+        Unknown = 3             ///< Indicates the initial state of the services.
     };
 
     /**
@@ -32,14 +36,14 @@ namespace WakeOnLanImpl {
     class NetworkHandler {
     public:
         /**
-         * NetworkHandler Constructor
+         * NetworkHandler constructor
          * @param port The port used in the bound socket created to receive messages.
          * @param config The host configuration
          */
         explicit NetworkHandler(const uint32_t &port, const Config &config);
 
         /**
-         * NetworkHandler Destructor
+         * NetworkHandler destructor
          */
         ~NetworkHandler();
 
@@ -84,25 +88,39 @@ namespace WakeOnLanImpl {
          */
         bool wakeUp(const std::string &mac);
 
+        /**
+         * Gets the device config.
+         * @returns A const Config reference.
+         */
         const Config & getDeviceConfig();
 
+        /**
+         * Updates the global service status.
+         * @returns None.
+         */
         void changeStatus(const ServiceGlobalStatus &gs);
 
+        /**
+         * Gets the global status.
+         * @returns A const ServiceGlobalStatus reference.
+         */
         const ServiceGlobalStatus& getGlobalStatus();
 
+        /**
+         * Stops the Network handler.
+         * @return None.
+         */
         void stop();
     private:
         std::unique_ptr<std::thread> t;         ///< The thread used to receive messages.
         std::mutex inetMutex;                   ///< The mutex for controlling internal issues.
-        std::mutex monitoringQueueMutex;        ///< The mutex for controlling the access to the monitoring queue.
-        std::mutex discoveryQueueMutex;         ///< The mutex for controlling the access to the discovery queue.
         std::queue<Message> discoveryQueue;     ///< The queue buffering messages designated to the Discovery service.
         std::queue<Message> monitoringQueue;    ///< The queue buffering messages designated to the Monitoring service.
         uint32_t  port;                         ///< The port the handler service is running on.
-        Config config;
-        ServiceGlobalStatus globalStatus;
-        std::mutex gsMutex;
-        std::shared_ptr<spdlog::logger> log;
-        bool active;
+        Config config;                          ///< The API configuration.
+        ServiceGlobalStatus globalStatus;       ///< The services global status.
+        std::mutex gsMutex;                     ///< The mutex used to handle global status access.
+        std::shared_ptr<spdlog::logger> log;    ///< The Network handler logger.
+        bool active;                            ///< The bool indicating whether service is active or not.
     };
 } // namespace WakeOnLanImpl

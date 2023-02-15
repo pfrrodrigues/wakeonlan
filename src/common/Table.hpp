@@ -9,7 +9,7 @@ namespace WakeOnLanImpl {
     /**
      * @class Table
      * This class is the generic representation of a group of participants. Every ::Participant being part of a
-     * table represents an host on the local network that is subscribed and connected to the service managed by an
+     * table represents a host on the local network that is subscribed and connected to the service managed by an
      * instance of the API running a manager handler. Operations over the table are realized by the services supported
      * by the ::ManagerHandler struct.
      */
@@ -25,7 +25,7 @@ namespace WakeOnLanImpl {
         enum class ParticipantStatus {
             Awaken = 0,       ///< The participant is answering to the services requests.
             Sleeping = 1,     ///< The participant is part of the group and is not answering to the service requests.
-            Unknown = 2
+            Unknown = 2       ///< The initial state of a added participant. The state changes to Awaken after manager receives a response to SleepStatusRequest.
         };
 
         /**
@@ -35,10 +35,10 @@ namespace WakeOnLanImpl {
          * contains the hostname, IP address, MAC address, and status information.
          */
         struct Participant {
-            std::string hostname;
-            std::string ip;
-            std::string mac;
-            ParticipantStatus status;
+            std::string hostname;       ///< The participant hostname.
+            std::string ip;             ///< The participant IP address.
+            std::string mac;            ///< The participant MAC address.
+            ParticipantStatus status;   ///< The participant status.
         };
 
         /**
@@ -92,6 +92,13 @@ namespace WakeOnLanImpl {
          */
         std::vector<Participant> get_participants_monitoring();
 
+        /**
+         * Gets all participants registered in the table.
+         * The function is operates on a blocking mode. That means
+         * once the function is called, it only returns the control
+         * to the caller after the table is updated by an event.
+         * @return A vector of registered participants.
+         */
         std::vector<Participant> get_participants_interface();
     private:
         Table() = default;
@@ -103,7 +110,6 @@ namespace WakeOnLanImpl {
         const Table &operator =(const Table &table);
 
         std::mutex tableMutex;                              ///< The mutex to manage access to the table representation.
-        std::mutex ifaceServMutex;                              ///< The mutex to manage access to the table representation.
         std::shared_ptr<spdlog::logger> log;                ///< The Table logger.
         std::unordered_map<std::string, Participant> data;  ///< The table representation.
     };

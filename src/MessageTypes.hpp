@@ -6,19 +6,28 @@
 namespace WakeOnLanImpl {
 #pragma pack(push, 1)
 
+/**
+ * @enum Type
+ * The Message type.
+ *
+ */
 enum class Type {
-    SleepServiceDiscovery = 'D',
-    SleepStatusRequest = 'R',
-    SleepServiceExit = 'E',
-    Unknown = 'U'
+    SleepServiceDiscovery = 'D',    ///< Indicates the message is a SleepServiceDiscovery message.
+    SleepStatusRequest = 'R',       ///< Indicates the message is a SleepStatusRequest message.
+    SleepServiceExit = 'E',         ///< Indicates the message is a SleepServiceExit message.
+    Unknown = 'U'                   ///< Indicates a unknown type was parsed.
 };
 
+/**
+ * @struct Message
+ * The struct represents the messages send/received by the API services.
+ */
 struct Message {
-    Type type;
-    uint32_t msgSeqNum;
-    char hostname[150];
-    char ip[150];
-    char mac[17];
+    Type type;            ///< The message type.
+    uint32_t msgSeqNum;   ///< The message sequence number (used by Discovery service).
+    char hostname[150];   ///< The source/destination hostname.
+    char ip[150];         ///< The source/destination IP address.
+    char mac[17];         ///< The source/destination MAC address.
 };
 
 inline std::ostream& operator<<(std::ostream &os, const Message &message) {

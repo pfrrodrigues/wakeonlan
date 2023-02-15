@@ -10,11 +10,32 @@
 using namespace WakeOnLan;
 
 namespace WakeOnLanImpl {
+    /**
+     * @class Handler
+     * The API handler. Handler is a generic class inherited by ManagerHandler and ParticipantHandler.
+     */
     class Handler {
     public:
+        /**
+         * Handler constructor.
+         */
         Handler();
+
+        /**
+         * Handler virtual destructor.
+         */
         virtual ~Handler();
+
+        /**
+         * Runs the services supported by the handler.
+         * @returns None.
+         */
         virtual void run();
+
+        /**
+         * Stops the services supported by the handler.
+         * @returns None.
+         */
         virtual void stop();
     };
 
@@ -25,12 +46,12 @@ namespace WakeOnLanImpl {
         explicit ManagerHandler(const Config &config, Table& = Table::get());
         virtual ~ManagerHandler();
     private:
-        std::unique_ptr<DiscoveryService> discoveryService;
-        std::unique_ptr<MonitoringService> monitoringService;
-        std::unique_ptr<ManagerInterfaceService> interfaceService;
-        std::shared_ptr<NetworkHandler> networkHandler;
-        Table& table;
-        Config config;
+        std::unique_ptr<DiscoveryService> discoveryService;             ///< The DiscoveryService instance.
+        std::unique_ptr<MonitoringService> monitoringService;           ///< The MonitoringService instance.
+        std::unique_ptr<ManagerInterfaceService> interfaceService;      ///< The InterfaceService instance.
+        std::shared_ptr<NetworkHandler> networkHandler;                 ///< The Network handler unique instance.
+        Table& table;                                                   ///< The singleton table.
+        Config config;                                                  ///< The API configuration.
     };
 
     class ParticipantHandler : public Handler {
@@ -40,11 +61,11 @@ namespace WakeOnLanImpl {
         explicit ParticipantHandler(const Config &config, Table& = Table::get());
         virtual ~ParticipantHandler();
     private:
-        std::unique_ptr<DiscoveryService> discoveryService;
-        std::unique_ptr<MonitoringService> monitoringService;
-        std::unique_ptr<ParticipantInterfaceService> interfaceService;
-        std::shared_ptr<NetworkHandler> networkHandler;
-        Table& table;
-        Config config;
+        std::unique_ptr<DiscoveryService> discoveryService;             ///< The DiscoveryService instance.
+        std::unique_ptr<MonitoringService> monitoringService;           ///< The MonitoringService instance.
+        std::unique_ptr<ParticipantInterfaceService> interfaceService;  ///< The InterfaceService instance.
+        std::shared_ptr<NetworkHandler> networkHandler;                 ///< The Network handler unique instance.
+        Table& table;                                                   ///< The singleton table.
+        Config config;                                                  ///< The API configuration.
     };
 } // namespace WakeOnLanImpl

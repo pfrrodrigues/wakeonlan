@@ -6,15 +6,33 @@
 #include <Types.hpp>
 
 namespace WakeOnLanImpl {
+    /**
+     * @class MonitoringService
+     * Implements the Monitoring service.
+     */
     class MonitoringService
     {
     public:
+        /**
+         * MonitoringService constructor.
+         * @param table The singleton table used to store the manager information or the participants information.
+         * @param networkHandler The unique Network handler.
+         */
         MonitoringService(Table &table, std::shared_ptr<NetworkHandler> networkHandler);
 
+        /**
+         * MonitoringService destructor.
+         */
         ~MonitoringService();
-        
+
+        /**
+         * Runs the Monitoring service.
+         */
         void run();
 
+        /**
+         * Runs the Monitoring service.
+         */
         void stop();
     private:
         /**
@@ -39,13 +57,18 @@ namespace WakeOnLanImpl {
          */
         void runAsParticipant();
 
+        /**
+         * Gets the received SleepStatusRequest message.
+         * @param seq
+         * @return A message.
+         */
         Message getSleepStatusRequest(int seq);
 
-        Table &table;
-        std::shared_ptr<NetworkHandler> inetHandler;
-        std::unique_ptr<std::thread> t;
-        bool active;
-        std::shared_ptr<spdlog::logger> log;
+        Table &table;                                   ///< The singleton table.
+        std::shared_ptr<NetworkHandler> inetHandler;    ///< A shared pointer to the unique Network handler.
+        std::unique_ptr<std::thread> t;                 ///< The service dedicated thread.
+        bool active;                                    ///< Indicates service is active or not.
+        std::shared_ptr<spdlog::logger> log;            ///< The DiscoveryService logger.
     };
     
 } // namespace WakeOnLanImpl
