@@ -1,4 +1,5 @@
 #include <../src/common/UdpSocket.hpp>
+#include <fcntl.h>
 #define BROADCAST_ADDRESS "255.255.255.255"
 #define LOCAL_SERVER_ADDRESS "0.0.0.0"
 
@@ -8,6 +9,10 @@ namespace WakeOnLanImpl {
             perror("socket (AF_INET, SOCK_DGRAM, 0)");
             exit(1);    // TODO: this must be handled
         }
+
+        if (fcntl(fd, F_SETFL, O_NONBLOCK) != 0) {
+            perror("fcntl (O_NONBLOCK)");
+         }
 
         u_int yes = 1;
         if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (char*)&yes, sizeof(yes)) == -1) {
@@ -69,8 +74,6 @@ namespace WakeOnLanImpl {
                          MSG_WAITALL,
                          (struct sockaddr *) &client_addr,
                          reinterpret_cast<socklen_t *>(&size));
-        if (n < 0)
-            printf("ERROR on recvfrom"); // TODO: this must be handled
     }
 
     void UdpSocket::closeSocket() {
