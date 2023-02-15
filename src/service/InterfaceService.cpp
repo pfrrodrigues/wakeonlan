@@ -215,6 +215,7 @@ namespace WakeOnLanImpl {
     {
         // wait connection
         std::cout << "Waiting connection to manager...";
+        std::flush(std::cout);
         std::vector<Table::Participant> ms = participantTable.get_participants_interface();
         if(ms.size() != 0)
             std::cout << "Something went wrong..";
