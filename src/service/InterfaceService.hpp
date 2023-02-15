@@ -66,6 +66,7 @@ namespace WakeOnLanImpl {
         void runCommandListener();
         std::string parseInput(std::string cmd);
         std::string processExitCmd();
+        void sendExitMsg();
 
         Table::Participant manager;
     };

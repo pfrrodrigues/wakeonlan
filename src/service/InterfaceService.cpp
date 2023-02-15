@@ -148,9 +148,9 @@ namespace WakeOnLanImpl {
         {
             std::cout << ">> ";
             if(!std::getline(std::cin, cmd))
-	    {
+	        {
                 kill(getpid(), SIGINT);
-		return;
+		        return;
             }
             response = parseInput(cmd);
             std::cout << "\033[2A"  // moves cursor 2 lines up
@@ -216,7 +216,7 @@ namespace WakeOnLanImpl {
     void ParticipantInterfaceService::stop()
     {
         // send exit message
-        processExitCmd();
+        sendExitMsg();
         // normal stop 
         InterfaceService::stop();
     }
@@ -247,7 +247,7 @@ namespace WakeOnLanImpl {
         {
             std::cout << ">> ";
             if(!std::getline(std::cin, cmd))
-	    {
+	        {
                 kill(getpid(), SIGINT);
                 return;
             }
@@ -279,6 +279,13 @@ namespace WakeOnLanImpl {
 
     std::string ParticipantInterfaceService::processExitCmd()
     {
+        kill(getpid(), SIGINT);
+        return "Sending exit message to manager " + manager.hostname + " @ " + manager.ip;  
+
+    }
+
+    void ParticipantInterfaceService::sendExitMsg()
+    {
         Config selfInfo = networkHandler->getDeviceConfig();
         Message exit_msg;
         exit_msg.type = Type::SleepServiceExit;
@@ -289,7 +296,5 @@ namespace WakeOnLanImpl {
         strncpy(exit_msg.ip, selfInfo.getIpAddress().c_str(), selfInfo.getIpAddress().size());
         strncpy(exit_msg.mac, selfInfo.getMacAddress().c_str(), selfInfo.getMacAddress().size());
         networkHandler->send(exit_msg, manager.ip);     
-        
-        return "Sending exit message to manager " + manager.hostname + " @ " + manager.ip;    
     }
 }
