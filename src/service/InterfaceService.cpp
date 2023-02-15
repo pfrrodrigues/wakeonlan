@@ -148,7 +148,10 @@ namespace WakeOnLanImpl {
         {
             std::cout << ">> ";
             if(!std::getline(std::cin, cmd))
+	    {
                 kill(getpid(), SIGINT);
+		return;
+            }
             response = parseInput(cmd);
             std::cout << "\033[2A"  // moves cursor 2 lines up
                       << "\033[K"   // clears line 
@@ -244,7 +247,10 @@ namespace WakeOnLanImpl {
         {
             std::cout << ">> ";
             if(!std::getline(std::cin, cmd))
+	    {
                 kill(getpid(), SIGINT);
+                return;
+            }
             response = parseInput(cmd);
             std::cout << "\033[2A"  // moves cursor 2 lines up
                       << "\033[K"   // clears line 
