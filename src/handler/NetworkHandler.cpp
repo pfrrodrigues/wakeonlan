@@ -17,7 +17,7 @@ namespace WakeOnLanImpl {
         t = std::make_unique<std::thread>([this, port](){
             this->active = true;
             UdpSocket socket(LOCAL_SERVER_ADDRESS, port);
-            log->info("Network Handler (internal): listening on port {}", port);
+            log->info("Network handler (internal): listening on port {}", port);
             while (active) {
                 Message response{};
                 response.type = Type::Unknown;
@@ -33,6 +33,7 @@ namespace WakeOnLanImpl {
                             discoveryQueue.push(response);
                             break;
                         default:
+                            log->warn("Network handler (internal): received a message with unknown type");
                             break;
                     }
                 }
