@@ -20,7 +20,7 @@ namespace WakeOnLan {
             if (quantity < 1) {
                 std::stringstream ss;
                 ss << "ConfigParserException: few arguments, but application expects 1 or 2.\n";
-                ss << "./app ['manager'] <interface>";
+                ss << "./wolapp ['manager'] <interface>";
                 throw ConfigParserException(ss.str());
             }
 
@@ -30,7 +30,7 @@ namespace WakeOnLan {
                     std::stringstream ss;
                     ss << "ConfigParserException: error in interpret handler type '";
                     ss << arg << "'\n";
-                    ss << "./app ['manager'] <interface>";
+                    ss << "./wolapp ['manager'] <interface>";
                     throw ConfigParserException(ss.str());
                 }
                 handlerType = Manager;
