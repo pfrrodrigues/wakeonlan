@@ -27,7 +27,8 @@ int main(int argc, char** argv) {
      * <> - mandatory
      * ./app ['manager'] <interface>
      * */
-    WakeOnLan::Config config(argv, argc);
+    const int argSize = argc - 1;
+    WakeOnLan::Config config(&argv[1], argSize);
 
     /*************************************
     * API instantiation
