@@ -6,29 +6,27 @@ namespace WakeOnLanImpl {
 
     Handler::Handler() {}
 
-    ManagerHandler::ManagerHandler(const Config &cfg, WakeOnLanImpl::Table &t)
+    ManagerHandler::ManagerHandler(const Config &cfg, Table &t)
             : table(t),
               config(cfg) {
-        networkHandler = std::make_shared<WakeOnLanImpl::NetworkHandler>(4000, config);
-        discoveryService = std::make_unique<WakeOnLanImpl::DiscoveryService>(table, networkHandler);
-        monitoringService = std::make_unique<WakeOnLanImpl::MonitoringService>(table, networkHandler);
-        interfaceService = std::make_unique<WakeOnLanImpl::ManagerInterfaceService>(table, networkHandler);
+        networkHandler = std::make_shared<NetworkHandler>(4000, config);
+        discoveryService = std::make_unique<DiscoveryService>(table, networkHandler);
+        monitoringService = std::make_unique<MonitoringService>(table, networkHandler);
+        interfaceService = std::make_unique<ManagerInterfaceService>(table, networkHandler);
     }
 
-    ManagerHandler::~ManagerHandler() {
-    }
+    ManagerHandler::~ManagerHandler() {}
 
     ParticipantHandler::ParticipantHandler(const Config &cfg, WakeOnLanImpl::Table &t)
             : table(t),
               config(cfg) {
-        networkHandler = std::make_shared<WakeOnLanImpl::NetworkHandler>(4000, config);
-        discoveryService = std::make_unique<WakeOnLanImpl::DiscoveryService>(table, networkHandler);
-        monitoringService = std::make_unique<WakeOnLanImpl::MonitoringService>(table, networkHandler);
-        interfaceService = std::make_unique<WakeOnLanImpl::ParticipantInterfaceService>(table, networkHandler);
+        networkHandler = std::make_shared<NetworkHandler>(4000, config);
+        discoveryService = std::make_unique<DiscoveryService>(table, networkHandler);
+        monitoringService = std::make_unique<MonitoringService>(table, networkHandler);
+        interfaceService = std::make_unique<ParticipantInterfaceService>(table, networkHandler);
     }
 
-    ParticipantHandler::~ParticipantHandler() {
-    }
+    ParticipantHandler::~ParticipantHandler() {}
 
     void Handler::run() {}
 
@@ -45,7 +43,7 @@ namespace WakeOnLanImpl {
         discoveryService->stop();
         monitoringService->stop();
         interfaceService->stop();
-        sleep(2);
+        sleep(1);
     }
 
     void ParticipantHandler::run() {
@@ -59,6 +57,6 @@ namespace WakeOnLanImpl {
         discoveryService->stop();
         monitoringService->stop();
         interfaceService->stop();
-        sleep(2);
+        sleep(1);
     }
 }

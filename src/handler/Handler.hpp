@@ -7,6 +7,8 @@
 #include <../src/service/MonitoringService.hpp>
 #include <../src/service/InterfaceService.hpp>
 
+using namespace WakeOnLan;
+
 namespace WakeOnLanImpl {
     class Handler {
     public:
@@ -20,14 +22,14 @@ namespace WakeOnLanImpl {
     public:
         void run() override;
         void stop() override;
-        explicit ManagerHandler(const Config &config, WakeOnLanImpl::Table& = WakeOnLanImpl::Table::get());
+        explicit ManagerHandler(const Config &config, Table& = Table::get());
         virtual ~ManagerHandler();
     private:
-        std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
-        std::unique_ptr<WakeOnLanImpl::MonitoringService> monitoringService;
-        std::unique_ptr<WakeOnLanImpl::ManagerInterfaceService> interfaceService;
-        std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
-        WakeOnLanImpl::Table& table;
+        std::unique_ptr<DiscoveryService> discoveryService;
+        std::unique_ptr<MonitoringService> monitoringService;
+        std::unique_ptr<ManagerInterfaceService> interfaceService;
+        std::shared_ptr<NetworkHandler> networkHandler;
+        Table& table;
         Config config;
     };
 
@@ -35,14 +37,14 @@ namespace WakeOnLanImpl {
     public:
         void run() override;
         void stop() override;
-        explicit ParticipantHandler(const Config &config, WakeOnLanImpl::Table& = WakeOnLanImpl::Table::get());
+        explicit ParticipantHandler(const Config &config, Table& = Table::get());
         virtual ~ParticipantHandler();
     private:
-        std::unique_ptr<WakeOnLanImpl::DiscoveryService> discoveryService;
-        std::unique_ptr<WakeOnLanImpl::MonitoringService> monitoringService;
-        std::unique_ptr<WakeOnLanImpl::ParticipantInterfaceService> interfaceService;
-        std::shared_ptr<WakeOnLanImpl::NetworkHandler> networkHandler;
-        WakeOnLanImpl::Table& table;
+        std::unique_ptr<DiscoveryService> discoveryService;
+        std::unique_ptr<MonitoringService> monitoringService;
+        std::unique_ptr<ParticipantInterfaceService> interfaceService;
+        std::shared_ptr<NetworkHandler> networkHandler;
+        Table& table;
         Config config;
     };
 } // namespace WakeOnLanImpl

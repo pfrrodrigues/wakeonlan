@@ -6,7 +6,7 @@ using namespace WakeOnLanImpl;
 
 namespace WakeOnLan {
     ApiInstance::ApiInstance(const Config &config)
-            : impl(std::make_unique<WakeOnLanImpl::ApiInstanceImpl>(config)) {
+            : impl(std::make_unique<ApiInstanceImpl>(config)) {
         std::mutex mtx;
         std::lock_guard<std::mutex> lk(mtx);
         Table::get();
