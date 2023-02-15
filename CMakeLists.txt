@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5.1)
 project(wakeonlan-api)
 
 set(CMAKE_CXX_STANDARD 14)
-add_definitions(-DWAKEONLAN_API_VERSION="1.1.0")
+add_definitions(-DWAKEONLAN_API_VERSION="1.0.0")
 
 add_subdirectory(modules/spdlog)
 
