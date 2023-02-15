@@ -204,6 +204,14 @@ namespace WakeOnLanImpl {
         ret = pthread_create(&threads[0], NULL, &startCommandListener, this);
     }
 
+    void ParticipantInterfaceService::stop()
+    {
+        // send exit message
+        processExitCmd();
+        // normal stop 
+        InterfaceService::stop();
+    }
+
     void * ParticipantInterfaceService::startCommandListener(void * param)
     {
         ParticipantInterfaceService *obj = (ParticipantInterfaceService *) param;
@@ -215,6 +223,7 @@ namespace WakeOnLanImpl {
     {
         // wait connection
         std::cout << "Waiting connection to manager...";
+        std::flush(std::cout);
         std::vector<Table::Participant> ms = participantTable.get_participants_interface();
         if(ms.size() != 0)
             std::cout << "Something went wrong..";
