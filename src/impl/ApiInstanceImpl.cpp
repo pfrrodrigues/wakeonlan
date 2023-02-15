@@ -2,16 +2,7 @@
 
 ApiInstanceImpl::ApiInstanceImpl(const Config &config)
     : config(config) {
-    switch (this->config.getHandlerType()) {
-        case Manager:
-            handler = std::make_unique<ManagerHandler>(config);
-            break;
-        case Participant:
-            handler = std::make_unique<ParticipantHandler>(config);
-            break;
-    }
-
-     /* Log initialization */
+    /* Log initialization */
     try {
         std::system("mkdir -p logs");
         spdlog::set_async_mode(8192,
@@ -37,6 +28,15 @@ ApiInstanceImpl::ApiInstanceImpl(const Config &config)
         log->info("MAC Address: {}", this->config.getMacAddress());
     } catch (spdlog::spdlog_ex &e) {
         std::cout << "Log init failed: " << e.what() << std::endl;
+    }
+
+    switch (this->config.getHandlerType()) {
+        case Manager:
+            handler = std::make_unique<ManagerHandler>(config);
+            break;
+        case Participant:
+            handler = std::make_unique<ParticipantHandler>(config);
+            break;
     }
 }
 
