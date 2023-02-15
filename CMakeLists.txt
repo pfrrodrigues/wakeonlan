@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5.1)
 project(wakeonlan-api)
 
 set(CMAKE_CXX_STANDARD 14)
-add_definitions(-DWAKEONLAN_API_VERSION="0.0.0")
+add_definitions(-DWAKEONLAN_API_VERSION="1.1.0")
 
 add_subdirectory(modules/spdlog)
 
@@ -16,5 +16,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/in
 target_link_libraries(${PROJECT_NAME} spdlog pthread)
 
 file(GLOB APP_FILES examples/App.cpp ${WAKEONLAN_API_HEADERS})
-add_executable(app ${APP_FILES})
-target_link_libraries(app ${PROJECT_NAME})
+add_executable(wolapp ${APP_FILES})
+target_link_libraries(wolapp ${PROJECT_NAME})
