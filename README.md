@@ -4,7 +4,7 @@ A friendly C++ library for managing and ingress on Wake-on-LAN groups.
 ## Platforms
 * Linux
 
-## Building the library
+## Cloning Repository and Building the library
 ```console
 $ git clone git@github.com:pfrrodrigues/wakeonlan.git --recurse-submodules
 $ cd wakeonlan
