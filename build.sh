@@ -1,5 +1,8 @@
 #!/bin/bash
 # wakeonlan API - project build script
-
-mkdir build && cd build
-cmake .. && make
+if [ ! -d "./build" ]
+then
+	mkdir build
+fi
+cd build || exit
+cmake .. && make -j 2
