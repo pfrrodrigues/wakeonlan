@@ -19,26 +19,12 @@ namespace WakeOnLan {
         try {
             if (quantity < 1) {
                 std::stringstream ss;
-                ss << "ConfigParserException: few arguments, but application expects 1 or 2.\n";
-                ss << "./wolapp ['manager'] <interface>";
+                ss << "ConfigParserException: few arguments, but application expects 1.\n";
+                ss << "./wolapp <interface>";
                 throw ConfigParserException(ss.str());
             }
 
-            if (quantity == 2) {
-                std::string arg(params[0]);
-                if (arg != "manager") {
-                    std::stringstream ss;
-                    ss << "ConfigParserException: error in interpret handler type '";
-                    ss << arg << "'\n";
-                    ss << "./wolapp ['manager'] <interface>";
-                    throw ConfigParserException(ss.str());
-                }
-                handlerType = Manager;
-                interface = params[1];
-            }
-            else {
-                interface = params[0];
-            }
+            interface = params[0];
 
             /* Get the MAC address */
             std::string command("cat /sys/class/net/");
