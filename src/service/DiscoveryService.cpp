@@ -70,6 +70,12 @@ namespace WakeOnLanImpl {
                                                   m->hostname, m->ip,m->mac);
                                     }
                                 }
+                                         // SYNC message                  // sender's mac is different from self's
+                                else if (m->msgSeqNum == WAKEONLAN_SYN && config.getMacAddress().compare(m->mac) != 0) { 
+                                    // two managers are online
+                                    log->info("Two managers online. Declaring manager failure.");
+                                    inetHandler->changeStatus(ManagerFailure);
+                                }
                                 break;
                             case Type::SleepServiceExit:
                                 if (table.remove(m->hostname))
