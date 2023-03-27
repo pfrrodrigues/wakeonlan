@@ -103,42 +103,37 @@ namespace WakeOnLanImpl {
                 Message *m;
 
                 m = inetHandler->getFromDiscoveryQueue();
-                if (m != nullptr) {
-                    switch (m->type) {
-                        case Type::SleepServiceDiscovery:
-                            switch (inetHandler->getGlobalStatus()) {
-                                case WaitingForSync:
-                                    if (m->msgSeqNum == WAKEONLAN_SYN) {
-                                        Message message{};
-                                        message.type = WakeOnLanImpl::Type::SleepServiceDiscovery;
-                                        message.msgSeqNum = WAKEONLAN_SYN_ACK;
-                                        bzero(message.hostname, sizeof(message.hostname));
-                                        bzero(message.ip, sizeof(message.ip));
-                                        bzero(message.mac, sizeof(message.mac));
-                                        strncpy(message.hostname, config.getHostname().c_str(), config.getHostname().size());
-                                        strncpy(message.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
-                                        strncpy(message.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
+                if (m != nullptr && m->type == Type::SleepServiceDiscovery) {
+                    switch (inetHandler->getGlobalStatus()) {
+                    case WaitingForSync:
+                        if (m->msgSeqNum == WAKEONLAN_SYN) {
+                            Message message{};
+                            message.type = WakeOnLanImpl::Type::SleepServiceDiscovery;
+                            message.msgSeqNum = WAKEONLAN_SYN_ACK;
+                            bzero(message.hostname, sizeof(message.hostname));
+                            bzero(message.ip, sizeof(message.ip));
+                            bzero(message.mac, sizeof(message.mac));
+                            strncpy(message.hostname, config.getHostname().c_str(), config.getHostname().size());
+                            strncpy(message.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
+                            strncpy(message.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
 
-                                        /* Add manager on the table */
-                                        {
-                                            Table::Participant p;
-                                            p.ip = m->ip;
-                                            p.hostname = m->hostname;
-                                            p.mac = m->mac;
-                                            p.status = Table::ParticipantStatus::Awaken;
-                                            table.insert(p);
-                                        }
-
-                                        inetHandler->send(message, m->ip);
-                                        inetHandler->changeStatus(Syncing);
-                                    }
-                                    break;
-                                default:
-                                    break;
+                            /* Add manager to the table */
+                            // TODO: wait for updated table from manager ..
+                            {
+                                Table::Participant p;
+                                p.ip = m->ip;
+                                p.hostname = m->hostname;
+                                p.mac = m->mac;
+                                p.status = Table::ParticipantStatus::Manager;
+                                table.insert(p);
                             }
-                            break;
-                        default:
-                            break;
+
+                            inetHandler->send(message, m->ip);
+                            inetHandler->changeStatus(Syncing);
+                        }
+                        break;
+                    default:
+                        break;
                     }
                 }
             }
