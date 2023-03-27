@@ -31,14 +31,7 @@ namespace WakeOnLanImpl {
             std::cout << "Log init failed: " << e.what() << std::endl;
         }
 
-        switch (this->config.getHandlerType()) {
-            case Manager:
-                handler = std::make_unique<ManagerHandler>(config);
-                break;
-            case Participant:
-                handler = std::make_unique<ParticipantHandler>(config);
-                break;
-        }
+        handler = std::make_unique<Handler>(config);
     }
 
     ApiInstanceImpl::~ApiInstanceImpl() {}

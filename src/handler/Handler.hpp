@@ -19,7 +19,7 @@ namespace WakeOnLanImpl {
         /**
          * Handler constructor.
          */
-        Handler();
+        Handler(const Config &config, Table& = Table::get());
 
         /**
          * Handler virtual destructor.
@@ -30,40 +30,17 @@ namespace WakeOnLanImpl {
          * Runs the services supported by the handler.
          * @returns None.
          */
-        virtual void run();
+        void run();
 
         /**
          * Stops the services supported by the handler.
          * @returns None.
          */
-        virtual void stop();
-    };
-
-    class ManagerHandler : public Handler {
-    public:
-        void run() override;
-        void stop() override;
-        explicit ManagerHandler(const Config &config, Table& = Table::get());
-        virtual ~ManagerHandler();
+        void stop();
     private:
         std::unique_ptr<DiscoveryService> discoveryService;             ///< The DiscoveryService instance.
         std::unique_ptr<MonitoringService> monitoringService;           ///< The MonitoringService instance.
-        std::unique_ptr<ManagerInterfaceService> interfaceService;      ///< The InterfaceService instance.
-        std::shared_ptr<NetworkHandler> networkHandler;                 ///< The Network handler unique instance.
-        Table& table;                                                   ///< The singleton table.
-        Config config;                                                  ///< The API configuration.
-    };
-
-    class ParticipantHandler : public Handler {
-    public:
-        void run() override;
-        void stop() override;
-        explicit ParticipantHandler(const Config &config, Table& = Table::get());
-        virtual ~ParticipantHandler();
-    private:
-        std::unique_ptr<DiscoveryService> discoveryService;             ///< The DiscoveryService instance.
-        std::unique_ptr<MonitoringService> monitoringService;           ///< The MonitoringService instance.
-        std::unique_ptr<ParticipantInterfaceService> interfaceService;  ///< The InterfaceService instance.
+        std::unique_ptr<InterfaceService> interfaceService;      ///< The InterfaceService instance.
         std::shared_ptr<NetworkHandler> networkHandler;                 ///< The Network handler unique instance.
         Table& table;                                                   ///< The singleton table.
         Config config;                                                  ///< The API configuration.
