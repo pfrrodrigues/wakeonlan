@@ -145,8 +145,8 @@ namespace WakeOnLanImpl {
                     return "Synchronized";
                 case Unknown:
                     return "Unknown";
-                default:
-                    break;
+                case ManagerFailure:
+                    return "ManagerFailure";
             }
         }());
     }

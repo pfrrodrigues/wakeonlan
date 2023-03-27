@@ -21,7 +21,8 @@ namespace WakeOnLanImpl {
         WaitingForSync = 0,     ///< Indicates a SleepServiceDiscovery request was not received yet.
         Syncing = 1,            ///< Indicates a SleepServiceDiscovery request was received and a response to that was sent.
         Synchronized = 2,       ///< Indicates a SleepStatusRequest was receive. At this point, a participant has sure the manager add it on the group table.
-        Unknown = 3             ///< Indicates the initial state of the services.
+        Unknown = 3,            ///< Indicates the initial state of the services.
+        ManagerFailure = 4      ///< Indicates that a service has detected a failure in the Manager. 
     };
 
     /**
