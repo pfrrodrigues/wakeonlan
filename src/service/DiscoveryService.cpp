@@ -6,6 +6,7 @@ namespace WakeOnLanImpl {
 #define WAKEONLAN_SYN_ACK 2
 #define WAKEONLAN_BROADCAST_ADDRESS "255.255.255.255"
 #define WAKEONLAN_DISCOVERY_REQUEST_WINDOW 10
+#define WAKEONLAN_DISCOVERY_TIMEOUT 12 
 
     DiscoveryService::DiscoveryService(Table &t, std::shared_ptr<NetworkHandler> nh)
         : table(t),
@@ -95,13 +96,14 @@ namespace WakeOnLanImpl {
             log->info("Start Discovery service");
             auto serviceStatus = inetHandler->getGlobalStatus();
             auto config = inetHandler->getDeviceConfig();
+            bool timerSet = false;
+            time_t timer;
 
             if (serviceStatus == Unknown)
                 inetHandler->changeStatus(WaitingForSync);
 
             while (active) {
                 Message *m;
-
                 m = inetHandler->getFromDiscoveryQueue();
                 if (m != nullptr && m->type == Type::SleepServiceDiscovery) {
                     switch (inetHandler->getGlobalStatus()) {
@@ -117,8 +119,8 @@ namespace WakeOnLanImpl {
                             strncpy(message.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
                             strncpy(message.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
 
-                            /* Add manager to the table */
-                            // TODO: wait for updated table from manager ..
+                            /* Add manager to the table, 
+                             * first table update means service has connected to a manager.  */
                             {
                                 Table::Participant p;
                                 p.ip = m->ip;
@@ -134,6 +136,18 @@ namespace WakeOnLanImpl {
                         break;
                     default:
                         break;
+                    }
+                }
+                if(inetHandler->getGlobalStatus() == WaitingForSync)
+                {
+                    if(!timerSet){
+                        timerSet = true;
+                        timer = std::time(0);
+                    }
+                    else if(std::time(0) - timer > WAKEONLAN_DISCOVERY_TIMEOUT)
+                    {
+                        log->info("Discovery service has timed-out. Declaring manager failure.");
+                        inetHandler->changeStatus(ManagerFailure);
                     }
                 }
             }
