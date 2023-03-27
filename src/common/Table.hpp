@@ -25,7 +25,8 @@ namespace WakeOnLanImpl {
         enum class ParticipantStatus {
             Awaken = 0,       ///< The participant is answering to the services requests.
             Sleeping = 1,     ///< The participant is part of the group and is not answering to the service requests.
-            Unknown = 2       ///< The initial state of a added participant. The state changes to Awaken after manager receives a response to SleepStatusRequest.
+            Unknown = 2,       ///< The initial state of a added participant. The state changes to Awaken after manager receives a response to SleepStatusRequest.
+            Manager = 3      ///< The participant is awake and is the current manager.
         };
 
         /**
@@ -100,6 +101,13 @@ namespace WakeOnLanImpl {
          * @return A vector of registered participants.
          */
         std::vector<Participant> get_participants_interface();
+
+        /**
+         * Gets the current manager as in the last update of the present table.
+         * @return The Participant object that is the current Manager if succesfull,
+         * an empty Participant if otherwise.
+         */
+        Participant get_manager();
     private:
         Table() = default;
 
