@@ -27,10 +27,7 @@ namespace WakeOnLanImpl {
             t->join();
 
         active = true;
-        this->log = spdlog::get("wakeonlan-api");
-
         t = std::make_unique<std::thread>([this](){
-            log->info("Start Discovery service");
             auto config = inetHandler->getDeviceConfig();
             while (active) {
                 Message *m;
@@ -96,10 +93,7 @@ namespace WakeOnLanImpl {
             t->join();
 
         active = true;
-        this->log = spdlog::get("wakeonlan-api");
-
         t = std::make_unique<std::thread>([this](){
-            log->info("Start Discovery service");
             auto serviceStatus = inetHandler->getGlobalStatus();
             auto config = inetHandler->getDeviceConfig();
             bool timerSet = false;
@@ -162,6 +156,8 @@ namespace WakeOnLanImpl {
 
     void DiscoveryService::run() {
         auto config = inetHandler->getDeviceConfig();
+        this->log = spdlog::get("wakeonlan-api");
+        log->info("Start Discovery service");
         switch (config.getHandlerType()) {
             case HandlerType::Manager:
                 runAsManager();
@@ -179,6 +175,18 @@ namespace WakeOnLanImpl {
     }
 
     void DiscoveryService::notifyRoleChange() {
-        
+        active = false;
+        auto config = inetHandler->getDeviceConfig();
+        switch (config.getHandlerType()) {
+            case HandlerType::Manager:
+                runAsManager();
+                break;
+            case HandlerType::Participant:
+                runAsParticipant();
+                break;
+            default:
+                break;
+        }
+
     }
 }
