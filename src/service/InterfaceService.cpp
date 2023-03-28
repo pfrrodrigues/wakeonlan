@@ -7,7 +7,8 @@
 namespace WakeOnLanImpl {
     // InterfaceService
     InterfaceService::InterfaceService(Table &table, std::shared_ptr<NetworkHandler> netHandler) 
-        : participantTable(table)
+        : participantTable(table),
+          config(netHandler->getDeviceConfig())
     {
         inetHandler = netHandler;
     }
@@ -15,14 +16,19 @@ namespace WakeOnLanImpl {
     void InterfaceService::stop()
     {
         log->info("Stop Interface service");
-        auto config = inetHandler->getDeviceConfig();
         if(config.getHandlerType() == HandlerType::Participant)
             sendExitMsg();
         keepRunning = false;
     }
 
     void InterfaceService::notifyRoleChange() {
-        
+        config = inetHandler->getDeviceConfig();
+        std::cout << "\033[s"   // saves cursor position
+                  << "\033[1A"  // moves cursor 1 line up
+                  << "\033[2K"   // clears line 
+                  << "This machine is now a " << ((config.getHandlerType() == HandlerType::Manager) ? "manager" : "participant")
+                  << std::endl 
+                  << "\033[u";  // returns to previous position 
     }
 
     void InterfaceService::run()
@@ -128,7 +134,6 @@ namespace WakeOnLanImpl {
 
     void InterfaceService::runCommandListener()
     {
-        auto config = inetHandler->getDeviceConfig();
         std::string cmd, response;
         while(keepRunning)
         {
@@ -217,15 +222,14 @@ namespace WakeOnLanImpl {
 
     void InterfaceService::sendExitMsg()
     {
-        Config selfInfo = inetHandler->getDeviceConfig();
         Message exit_msg;
         exit_msg.type = Type::SleepServiceExit;
         bzero(exit_msg.hostname, sizeof(exit_msg.hostname));
         bzero(exit_msg.ip, sizeof(exit_msg.ip));
         bzero(exit_msg.mac, sizeof(exit_msg.mac));
-        strncpy(exit_msg.hostname, selfInfo.getHostname().c_str(), selfInfo.getHostname().size());
-        strncpy(exit_msg.ip, selfInfo.getIpAddress().c_str(), selfInfo.getIpAddress().size());
-        strncpy(exit_msg.mac, selfInfo.getMacAddress().c_str(), selfInfo.getMacAddress().size());
+        strncpy(exit_msg.hostname, config.getHostname().c_str(), config.getHostname().size());
+        strncpy(exit_msg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
+        strncpy(exit_msg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
         inetHandler->send(exit_msg, lastSyncManager.ip);     
     }
     

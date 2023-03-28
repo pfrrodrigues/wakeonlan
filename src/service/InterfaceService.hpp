@@ -68,6 +68,7 @@ namespace WakeOnLanImpl {
         std::vector<pthread_t> threads;                 ///< The vector of the dedicated threads.
         Table &participantTable;                        ///< The singleton table.
         std::shared_ptr<NetworkHandler> inetHandler; ///< The unique network handler.
+        Config config;
         bool keepRunning;                               /// Indicates the services must keep running.
     };
 
