@@ -24,6 +24,7 @@ namespace WakeOnLanImpl {
                         break;
                 }
             }());
+            log->info("Host Interface: {}", this->config.getIface());
             log->info("Hostname: {}", this->config.getHostname());
             log->info("IP Address: {}", this->config.getIpAddress());
             log->info("MAC Address: {}", this->config.getMacAddress());
