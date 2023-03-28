@@ -27,7 +27,6 @@ namespace WakeOnLanImpl {
                 switch (networkHandler->getGlobalStatus())
                 {
                 case ManagerFailure:
-                    std::cout << "Manager failure :(" << std::endl;
                     // 1. run an election 
                     electionResult = electionService->startElection();
                     // 2. notify services if there is a status change
