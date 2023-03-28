@@ -33,8 +33,7 @@ namespace WakeOnLanImpl {
                     // 2. notify services if there is a status change
                     if (electionResult != config.getHandlerType())
                     {
-                        std::cout << "TODO: chage networkHandler config" << std::endl;
-                        config = networkHandler->getDeviceConfig();
+                        config = networkHandler->changeHandlerType(electionResult);
                         networkHandler->changeStatus(ServiceGlobalStatus::Synchronized);
                     }
 
