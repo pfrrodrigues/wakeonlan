@@ -177,4 +177,8 @@ namespace WakeOnLanImpl {
     void DiscoveryService::stop() {
         log->info("Stop Discovery service");
     }
+
+    void DiscoveryService::notifyRoleChange() {
+        
+    }
 }

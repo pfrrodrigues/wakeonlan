@@ -35,6 +35,10 @@ namespace WakeOnLanImpl {
                     {
                         config = networkHandler->changeHandlerType(electionResult);
                         networkHandler->changeStatus(ServiceGlobalStatus::Synchronized);
+
+                        discoveryService->notifyRoleChange();
+                        monitoringService->notifyRoleChange();
+                        interfaceService->notifyRoleChange();
                     }
 
                     break;

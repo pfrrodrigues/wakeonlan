@@ -34,6 +34,11 @@ namespace WakeOnLanImpl {
          * Runs the Monitoring service.
          */
         void stop();
+        
+        /**
+         * Indicate to the service that there has been a change in it's role 
+         */
+        void notifyRoleChange();
     private:
         /**
          * For every entry in table, if participant is:

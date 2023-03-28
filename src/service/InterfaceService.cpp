@@ -21,6 +21,10 @@ namespace WakeOnLanImpl {
         keepRunning = false;
     }
 
+    void InterfaceService::notifyRoleChange() {
+        
+    }
+
     void InterfaceService::run()
     {
         keepRunning = true;

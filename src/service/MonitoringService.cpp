@@ -173,5 +173,8 @@ namespace WakeOnLanImpl {
         log->info("Stop Monitoring service");
     }
 
+    void MonitoringService::notifyRoleChange() {
+        
+    }
 
 } // namespace WakeOnLanImpl

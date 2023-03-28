@@ -33,6 +33,10 @@ namespace WakeOnLanImpl {
          */
         void stop();
 
+        /**
+         * Indicate to the service that there has been a change in it's role 
+         */
+        void notifyRoleChange();
     private:
         /**
          * Splits the user command.
