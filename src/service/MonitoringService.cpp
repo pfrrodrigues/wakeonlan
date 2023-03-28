@@ -16,6 +16,8 @@ namespace WakeOnLanImpl {
     }
 
     void MonitoringService::run() {
+        this->log = spdlog::get("wakeonlan-api");
+        log->info("Start Monitoring service");
         Config config = inetHandler->getDeviceConfig();
         switch (config.getHandlerType())
         {
@@ -35,10 +37,7 @@ namespace WakeOnLanImpl {
             t->join();
 
         active = true;
-        this->log = spdlog::get("wakeonlan-api");
-
         t = std::make_unique<std::thread>([this]() {
-            log->info("Start Monitoring service");
             time_t timestamp;
             bool timerSet;
             int seq = 0;
@@ -100,10 +99,7 @@ namespace WakeOnLanImpl {
             t->join();
 
         active = true;
-        this->log = spdlog::get("wakeonlan-api");
-
         t = std::make_unique<std::thread>([this]() {
-            log->info("Start Monitoring service");
             ServiceGlobalStatus status;
             Message *msg;
             time_t timestamp;
@@ -174,7 +170,19 @@ namespace WakeOnLanImpl {
     }
 
     void MonitoringService::notifyRoleChange() {
-        
+        // stops active thread
+        active = false;
+        auto config = inetHandler->getDeviceConfig();
+        switch (config.getHandlerType())
+        {
+        case HandlerType::Manager:
+            runAsManager();
+            break;
+        case HandlerType::Participant:
+            runAsParticipant();
+        default:
+            break;
+        }
     }
 
 } // namespace WakeOnLanImpl
