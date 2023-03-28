@@ -151,6 +151,11 @@ namespace WakeOnLanImpl {
         }());
     }
 
+    Config NetworkHandler::changeHandlerType(const HandlerType &ht) {
+        config.setHandlerType(ht);
+        return config;
+    }
+
     const ServiceGlobalStatus& NetworkHandler::getGlobalStatus() {
         std::lock_guard<std::mutex> lk(gsMutex);
         return globalStatus;

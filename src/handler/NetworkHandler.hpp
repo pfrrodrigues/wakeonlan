@@ -102,6 +102,12 @@ namespace WakeOnLanImpl {
         void changeStatus(const ServiceGlobalStatus &gs);
 
         /**
+         * Updates handler type 
+         * @returns New Config for the system.
+         */
+        Config changeHandlerType(const HandlerType &ht);
+
+        /**
          * Gets the global status.
          * @returns A const ServiceGlobalStatus reference.
          */

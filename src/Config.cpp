@@ -67,4 +67,6 @@ namespace WakeOnLan {
 
     HandlerType Config::getHandlerType() { return handlerType; }
 
+    void Config::setHandlerType(const HandlerType &ht) { handlerType = ht; }
+
 }
