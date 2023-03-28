@@ -6,6 +6,7 @@
 #include <../src/service/DiscoveryService.hpp>
 #include <../src/service/MonitoringService.hpp>
 #include <../src/service/InterfaceService.hpp>
+#include <../src/service/ElectionService.hpp>
 
 using namespace WakeOnLan;
 
@@ -40,9 +41,13 @@ namespace WakeOnLanImpl {
     private:
         std::unique_ptr<DiscoveryService> discoveryService;             ///< The DiscoveryService instance.
         std::unique_ptr<MonitoringService> monitoringService;           ///< The MonitoringService instance.
-        std::unique_ptr<InterfaceService> interfaceService;      ///< The InterfaceService instance.
+        std::unique_ptr<InterfaceService> interfaceService;             ///< The InterfaceService instance.
+        std::unique_ptr<ElectionService> electionService;               ///< The ElectionService instance.
         std::shared_ptr<NetworkHandler> networkHandler;                 ///< The Network handler unique instance.
         Table& table;                                                   ///< The singleton table.
         Config config;                                                  ///< The API configuration.
+
+        std::unique_ptr<std::thread> t; ///< GlobalStatus monitoring thread
+        bool active;
     };
 } // namespace WakeOnLanImpl
