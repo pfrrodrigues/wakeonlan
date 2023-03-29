@@ -42,8 +42,8 @@ inline std::ostream& operator<<(std::ostream &os, const Message &message) {
                 return "SleepStatusRequest\n";
             case Type::SleepServiceExit:
                 return "SleepServiceExit\n";
-            case Type::TableCopy:
-                return "SleepServiceExit\n";
+            case Type::TableReplica:
+                return "TableReplica\n";
             default:
                 return "";
         }
