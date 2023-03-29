@@ -38,6 +38,12 @@ namespace WakeOnLanImpl {
                             discoveryQueue.push(response);
                         }
                         break;
+                        case Type::TableReplica:
+                        {
+                            std::lock_guard<std::mutex> lk(inetMutex);
+                            monitoringQueue.push(response);
+                        }
+                        break;
                         default:
                             log->warn("Network handler (internal): received a message with unknown type");
                             break;

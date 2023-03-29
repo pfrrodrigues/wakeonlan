@@ -15,6 +15,7 @@ enum class Type {
     SleepServiceDiscovery = 'D',    ///< Indicates the message is a SleepServiceDiscovery message.
     SleepStatusRequest = 'R',       ///< Indicates the message is a SleepStatusRequest message.
     SleepServiceExit = 'E',         ///< Indicates the message is a SleepServiceExit message.
+    TableReplica = 'T',                ///< Indicates the message is a TableReplica message.
     Unknown = 'U'                   ///< Indicates a unknown type was parsed.
 };
 
@@ -28,6 +29,7 @@ struct Message {
     char hostname[150];   ///< The source/destination hostname.
     char ip[150];         ///< The source/destination IP address.
     char mac[17];         ///< The source/destination MAC address.
+    char* buffer;         ///< The message buffer.
 };
 
 inline std::ostream& operator<<(std::ostream &os, const Message &message) {
@@ -39,6 +41,8 @@ inline std::ostream& operator<<(std::ostream &os, const Message &message) {
             case Type::SleepStatusRequest:
                 return "SleepStatusRequest\n";
             case Type::SleepServiceExit:
+                return "SleepServiceExit\n";
+            case Type::TableCopy:
                 return "SleepServiceExit\n";
             default:
                 return "";
