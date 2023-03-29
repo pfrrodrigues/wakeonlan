@@ -40,7 +40,7 @@ namespace WakeOnLanImpl {
         tableMsg.buffer = (char*) malloc(buffer_size);
         unsigned long offset = 0;
         for (auto entry : data) {
-            memcpy(&tableMsg.buffer[offset], &entry.second, buffer_offset); // apenas o Participant
+            memcpy(&tableMsg.buffer[offset], &entry.second, buffer_offset); // apenas Participant para  o buffer
             offset += buffer_offset;
         }
 
@@ -100,6 +100,9 @@ namespace WakeOnLanImpl {
 
         for(auto& part: get_participants_monitoring()) {
             if (part.status == ParticipantStatus::Awaken) {
+                strncpy(tableMsg.hostname, part.hostname.c_str(), config.getHostname().size());
+                strncpy(tableMsg.ip, part.ip.c_str(), config.getIpAddress().size());
+                strncpy(tableMsg.mac, part.mac.c_str(), config.getMacAddress().size());
                 networkHandler->send(tableMsg, part.ip);
             }
         }
@@ -144,6 +147,9 @@ namespace WakeOnLanImpl {
 
         for(auto& part: get_participants_monitoring()) {
             if (part.status == ParticipantStatus::Awaken) {
+                strncpy(tableMsg.hostname, part.hostname.c_str(), config.getHostname().size());
+                strncpy(tableMsg.ip, part.ip.c_str(), config.getIpAddress().size());
+                strncpy(tableMsg.mac, part.mac.c_str(), config.getMacAddress().size());
                 networkHandler->send(tableMsg, part.ip);
             }
         }
