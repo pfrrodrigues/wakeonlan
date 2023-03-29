@@ -22,8 +22,41 @@ namespace WakeOnLanImpl {
         return returnCode;
     }
 
+    bool Table::insert_replicate(const Participant &participant, const std::shared_ptr<NetworkHandler>& networkHandler) {
+        auto config = networkHandler->getDeviceConfig();
+
+        bool returnCode = false;
+        std::lock_guard<std::mutex> lk(tableMutex);
+        returnCode = data.insert(std::make_pair(participant.hostname, participant)).second;
+        if (returnCode) {
+            updated = true;
+            cv.notify_one();
+        }
+
+        Message tableMsg{};
+        unsigned long n_participants = get_participants_monitoring().size();
+        unsigned long buffer_size = n_participants * sizeof(Participant);
+        unsigned long buffer_offset = sizeof(Participant);
+        tableMsg.buffer = (char*) malloc(buffer_size);
+        unsigned long offset = 0;
+        for (auto entry : data) {
+            memcpy(&tableMsg.buffer[offset], &entry.second, buffer_offset); // apenas o Participant
+            offset += buffer_offset;
+        }
+
+        for(auto& part: get_participants_monitoring()) {
+            if (part.status == ParticipantStatus::Awaken) {
+                strncpy(tableMsg.hostname, part.hostname.c_str(), config.getHostname().size());
+                strncpy(tableMsg.ip, part.ip.c_str(), config.getIpAddress().size());
+                strncpy(tableMsg.mac, part.mac.c_str(), config.getMacAddress().size());
+                networkHandler->send(tableMsg, part.ip);
+            }
+        }
+        return returnCode;
+    }
+
     bool Table::update(const ParticipantStatus &status, const std::string &hostname) {
-	bool returnCode = false;
+	    bool returnCode = false;
         std::lock_guard<std::mutex> lk(tableMutex);
         auto it = data.find(hostname);
         if (it != data.end()) {
@@ -38,6 +71,42 @@ namespace WakeOnLanImpl {
         return returnCode;
     }
 
+    bool Table::update_replicate(const ParticipantStatus &status, const std::string &hostname, const std::shared_ptr<NetworkHandler>& networkHandler) {
+        auto config = networkHandler->getDeviceConfig();
+
+        bool returnCode = false;
+        std::lock_guard<std::mutex> lk(tableMutex);
+        auto it = data.find(hostname);
+        if (it != data.end()) {
+            if(it->second.status != status)
+            {
+                it->second.status = status;
+                updated = true;
+                cv.notify_one();
+            }
+            returnCode = true;
+        }
+
+        Message tableMsg{};
+        unsigned long n_participants = get_participants_monitoring().size();
+        unsigned long buffer_size = n_participants * sizeof(Participant);
+        unsigned long buffer_offset = sizeof(Participant);
+        tableMsg.buffer = (char*) malloc(buffer_size);
+        unsigned long offset = 0;
+        for (auto entry : data) {
+            memcpy(&tableMsg.buffer[offset], &entry.second, buffer_offset);
+            offset += buffer_offset;
+        }
+
+        for(auto& part: get_participants_monitoring()) {
+            if (part.status == ParticipantStatus::Awaken) {
+                networkHandler->send(tableMsg, part.ip);
+            }
+        }
+
+        return returnCode;
+    }
+
     bool Table::remove(const std::string &hostname) {
         bool returnCode = false;
         std::lock_guard<std::mutex> lk(tableMutex);
@@ -47,6 +116,38 @@ namespace WakeOnLanImpl {
                 updated = true;
                 cv.notify_one();
             }
+        return returnCode;
+    }
+
+    bool Table::remove_replicate(const std::string &hostname, const std::shared_ptr<NetworkHandler>& networkHandler) {
+        auto config = networkHandler->getDeviceConfig();
+
+        bool returnCode = false;
+        std::lock_guard<std::mutex> lk(tableMutex);
+        if (data.count(hostname))
+            if (data.erase(hostname)) {
+                returnCode = true;
+                updated = true;
+                cv.notify_one();
+            }
+
+        Message tableMsg{};
+        unsigned long n_participants = get_participants_monitoring().size();
+        unsigned long buffer_size = n_participants * sizeof(Participant);
+        unsigned long buffer_offset = sizeof(Participant);
+        tableMsg.buffer = (char*) malloc(buffer_size);
+        unsigned long offset = 0;
+        for (auto entry : data) {
+            memcpy(&tableMsg.buffer[offset], &entry.second, buffer_offset);
+            offset += buffer_offset;
+        }
+
+        for(auto& part: get_participants_monitoring()) {
+            if (part.status == ParticipantStatus::Awaken) {
+                networkHandler->send(tableMsg, part.ip);
+            }
+        }
+
         return returnCode;
     }
     

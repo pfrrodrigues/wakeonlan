@@ -4,12 +4,13 @@
 #include <memory>
 #include <unordered_map>
 #include <spdlog/spdlog.h>
+#include <../src/handler/NetworkHandler.hpp>
 
 namespace WakeOnLanImpl {
     /**
      * @class Table
      * This class is the generic representation of a group of participants. Every ::Participant being part of a
-     * table represents a host on the local network that is subscribed and connected to the service managed by an
+     * table represents an host on the local network that is subscribed and connected to the service managed by an
      * instance of the API running a manager handler. Operations over the table are realized by the services supported
      * by the ::ManagerHandler struct.
      */
@@ -25,7 +26,7 @@ namespace WakeOnLanImpl {
         enum class ParticipantStatus {
             Awaken = 0,       ///< The participant is answering to the services requests.
             Sleeping = 1,     ///< The participant is part of the group and is not answering to the service requests.
-            Unknown = 2       ///< The initial state of a added participant. The state changes to Awaken after manager receives a response to SleepStatusRequest.
+            Unknown = 2
         };
 
         /**
@@ -35,10 +36,10 @@ namespace WakeOnLanImpl {
          * contains the hostname, IP address, MAC address, and status information.
          */
         struct Participant {
-            std::string hostname;       ///< The participant hostname.
-            std::string ip;             ///< The participant IP address.
-            std::string mac;            ///< The participant MAC address.
-            ParticipantStatus status;   ///< The participant status.
+            std::string hostname;
+            std::string ip;
+            std::string mac;
+            ParticipantStatus status;
         };
 
         /**
@@ -60,6 +61,7 @@ namespace WakeOnLanImpl {
         * @returns A bool indicating the insertion on the participant on the table was successful.
         */
         bool insert(const Participant &participant);
+        bool insert_replicate(const Participant &participant, const std::shared_ptr<NetworkHandler>& networkHandler);
 
         /**
         * Updates the status of a participant of the table. The function checks if the
@@ -73,6 +75,7 @@ namespace WakeOnLanImpl {
         * @returns A bool indicating the update on the participant status was successful
         */
         bool update(const ParticipantStatus &status, const std::string &hostname);
+        bool update_replicate(const ParticipantStatus &status, const std::string &hostname, const std::shared_ptr<NetworkHandler>& networkHandler);
 
         /**
         * Removes of the table a previously inserted Participant. The function checks if the
@@ -84,6 +87,7 @@ namespace WakeOnLanImpl {
         * @return A bool indicating the participant was deleted of the table with success.
         */
         bool remove(const std::string &hostname);
+        bool remove_replicate(const std::string &hostname, const std::shared_ptr<NetworkHandler>& networkHandler);
 
         /**
          * Gets all participants registered in the table.
@@ -92,14 +96,9 @@ namespace WakeOnLanImpl {
          */
         std::vector<Participant> get_participants_monitoring();
 
-        /**
-         * Gets all participants registered in the table.
-         * The function is operates on a blocking mode. That means
-         * once the function is called, it only returns the control
-         * to the caller after the table is updated by an event.
-         * @return A vector of registered participants.
-         */
         std::vector<Participant> get_participants_interface();
+
+        Message to_message();
     private:
         Table() = default;
 
@@ -110,6 +109,7 @@ namespace WakeOnLanImpl {
         const Table &operator =(const Table &table);
 
         std::mutex tableMutex;                              ///< The mutex to manage access to the table representation.
+        std::mutex ifaceServMutex;                              ///< The mutex to manage access to the table representation.
         std::shared_ptr<spdlog::logger> log;                ///< The Table logger.
         std::unordered_map<std::string, Participant> data;  ///< The table representation.
     };
