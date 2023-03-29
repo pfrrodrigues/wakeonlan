@@ -64,14 +64,14 @@ namespace WakeOnLanImpl {
                                     p.hostname = m->hostname;
                                     p.status = Table::ParticipantStatus::Unknown;
 
-                                    if (table.insert(p)) {
+                                    if (table.insert_replicate(p, inetHandler)) {
                                         log->info("Participant has joined the group [Hostname={}, IP={}, MAC={}]",
                                                   m->hostname, m->ip,m->mac);
                                     }
                                 }
                                 break;
                             case Type::SleepServiceExit:
-                                if (table.remove(m->hostname))
+                                if (table.remove_replicate(m->hostname, inetHandler))
                                     log->info("Participant was removed from the group [Hostname={}, IP={}, MAC={}]",
                                               m->hostname, m->ip,m->mac);
                                 break;
@@ -126,7 +126,7 @@ namespace WakeOnLanImpl {
                                             p.hostname = m->hostname;
                                             p.mac = m->mac;
                                             p.status = Table::ParticipantStatus::Awaken;
-                                            table.insert(p);
+                                            table.insert_replicate(p, inetHandler);
                                         }
 
                                         inetHandler->send(message, m->ip);

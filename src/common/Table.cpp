@@ -50,6 +50,7 @@ namespace WakeOnLanImpl {
                 strncpy(tableMsg.ip, part.ip.c_str(), config.getIpAddress().size());
                 strncpy(tableMsg.mac, part.mac.c_str(), config.getMacAddress().size());
                 networkHandler->send(tableMsg, part.ip);
+                std::cout << "SENT" << std::endl;
             }
         }
         return returnCode;
@@ -104,6 +105,7 @@ namespace WakeOnLanImpl {
                 strncpy(tableMsg.ip, part.ip.c_str(), config.getIpAddress().size());
                 strncpy(tableMsg.mac, part.mac.c_str(), config.getMacAddress().size());
                 networkHandler->send(tableMsg, part.ip);
+                std::cout << "SENT" << std::endl;
             }
         }
 
@@ -151,6 +153,7 @@ namespace WakeOnLanImpl {
                 strncpy(tableMsg.ip, part.ip.c_str(), config.getIpAddress().size());
                 strncpy(tableMsg.mac, part.mac.c_str(), config.getMacAddress().size());
                 networkHandler->send(tableMsg, part.ip);
+                std::cout << "SENT" << std::endl;
             }
         }
 
