@@ -27,8 +27,11 @@ namespace WakeOnLanImpl {
                     switch (response.type) {
                         case Type::SleepStatusRequest:
                         {
-                            std::lock_guard<std::mutex> lk(inetMutex);
-                            monitoringQueue.push(response);
+                            if(response.ip == managerIp)
+                            {
+                                std::lock_guard<std::mutex> lk(inetMutex);
+                                monitoringQueue.push(response);
+                            }
                         }
                         break;
                         case Type::SleepServiceDiscovery:
@@ -188,6 +191,10 @@ namespace WakeOnLanImpl {
     }
 
     const Config &NetworkHandler::getDeviceConfig() { return config; }
+
+    void NetworkHandler::setManagerIp(std::string ip) {managerIp = ip;}
+
+    std::string NetworkHandler::getManagerIp() {return managerIp;}
 
     void NetworkHandler::stop() {
         active = false;

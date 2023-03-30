@@ -119,16 +119,7 @@ namespace WakeOnLanImpl {
                             strncpy(message.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
                             strncpy(message.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
 
-                            /* Add manager to the table, 
-                             * first table update means service has connected to a manager.  */
-                            {
-                                Table::Participant p;
-                                p.ip = m->ip;
-                                p.hostname = m->hostname;
-                                p.mac = m->mac;
-                                p.status = Table::ParticipantStatus::Manager;
-                                table.insert(p);
-                            }
+                            inetHandler->setManagerIp(m->ip);
 
                             inetHandler->send(message, m->ip);
                             inetHandler->changeStatus(Syncing);

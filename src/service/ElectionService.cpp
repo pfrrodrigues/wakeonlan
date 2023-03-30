@@ -37,6 +37,8 @@ namespace WakeOnLanImpl {
                     {
                     case Type::ElectionServiceCoordinator:
                         ongoingElection = false;
+                        inetHandler->setManagerIp(m->ip);
+                        inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
                         // TODO : there's a new manager, assuming you are Synchronized
                     break;
                     case Type::ElectionServiceElection:
@@ -139,6 +141,8 @@ namespace WakeOnLanImpl {
     void ElectionService::announceVictory()
     {
         ongoingElection = false;
+        inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
+        
         std::vector<Table::Participant> participants = table.get_participants_monitoring();
         auto config = inetHandler->getDeviceConfig();
         // if no one else is in the service, adds self

@@ -125,6 +125,19 @@ namespace WakeOnLanImpl {
         const ServiceGlobalStatus& getGlobalStatus();
 
         /**
+         * Set the latest manager's IP address
+         * @param ip , string with the IP address. 
+         */
+        void setManagerIp(std::string ip);
+
+        /**
+         * Get the current manager's IP address or 
+         * an empty string if thre's no manager set
+         * @return std::string
+         */
+        std::string getManagerIp();
+
+        /**
          * Stops the Network handler.
          * @return None.
          */
@@ -134,11 +147,12 @@ namespace WakeOnLanImpl {
         std::mutex inetMutex;                   ///< The mutex for controlling internal issues.
         std::queue<Message> discoveryQueue;     ///< The queue buffering messages designated to the Discovery service.
         std::queue<Message> monitoringQueue;    ///< The queue buffering messages designated to the Monitoring service.
-        std::queue<Message> electionQueue;    ///< The queue buffering messages designated to the Election service.
+        std::queue<Message> electionQueue;      ///< The queue buffering messages designated to the Election service.
         uint32_t  port;                         ///< The port the handler service is running on.
         Config config;                          ///< The API configuration.
         ServiceGlobalStatus globalStatus;       ///< The services global status.
         std::mutex gsMutex;                     ///< The mutex used to handle global status access.
+        std::string managerIp;                  ///< The IP address of the current manager.
         std::shared_ptr<spdlog::logger> log;    ///< The Network handler logger.
         bool active;                            ///< The bool indicating whether service is active or not.
     };
