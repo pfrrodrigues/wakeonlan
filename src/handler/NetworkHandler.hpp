@@ -83,6 +83,17 @@ namespace WakeOnLanImpl {
         Message* getFromMonitoringQueue();
 
         /**
+         * Gets the older Message from the Election service queue. Messages of type ElectionService*
+         * received by the handler are placed on a dedicated queue and can be gotten through this
+         * function. Every message returned by the function is removed from the queue, so reading from the queue
+         * is a unitary operation on the perspective of the specific message being recovered. In case of the queue
+         * is empty a nullptr is returned, indicating there are not messages in the queue.
+         *
+         * @returns a pointer to a Message received by the handler and designated to the Election service.
+         */
+        Message* getFromElectionQueue();
+
+        /**
          * Sends a WOL packet to a target host.
          * @param mac A MAC address in string format.
          * @returns A bool indicating the WOL packet was sent.
@@ -123,6 +134,7 @@ namespace WakeOnLanImpl {
         std::mutex inetMutex;                   ///< The mutex for controlling internal issues.
         std::queue<Message> discoveryQueue;     ///< The queue buffering messages designated to the Discovery service.
         std::queue<Message> monitoringQueue;    ///< The queue buffering messages designated to the Monitoring service.
+        std::queue<Message> electionQueue;    ///< The queue buffering messages designated to the Election service.
         uint32_t  port;                         ///< The port the handler service is running on.
         Config config;                          ///< The API configuration.
         ServiceGlobalStatus globalStatus;       ///< The services global status.

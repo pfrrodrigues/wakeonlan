@@ -38,6 +38,14 @@ namespace WakeOnLanImpl {
                             discoveryQueue.push(response);
                         }
                         break;
+                        case Type::ElectionServiceElection:
+                        case Type::ElectionServiceAnswer:
+                        case Type::ElectionServiceCoordinator:
+                        {
+                            std::lock_guard<std::mutex> lk(inetMutex);
+                            electionQueue.push(response);
+                        }
+                        break;
                         default:
                             log->warn("Network handler (internal): received a message with unknown type");
                             break;
@@ -89,6 +97,24 @@ namespace WakeOnLanImpl {
 
         if (!monitoringQueue.empty()) {
             Message * k = &monitoringQueue.front();
+            free = true;
+            return k;
+        }
+        else {
+            free = false;
+            return nullptr;
+        }
+    }
+
+    Message* NetworkHandler::getFromElectionQueue() {
+        std::lock_guard<std::mutex> lk(inetMutex);
+        static bool free = false;
+        if (free) {
+            electionQueue.pop();
+        }
+
+        if (!electionQueue.empty()) {
+            Message * k = &electionQueue.front();
             free = true;
             return k;
         }
