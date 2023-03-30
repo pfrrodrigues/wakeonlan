@@ -24,6 +24,8 @@ namespace WakeOnLanImpl {
         if (t)
             t->join();
 
+        log = spdlog::get("wakeonlan-api");
+        log->info("Start Election service");
         active = true;
         t = std::make_unique<std::thread>([this](){
             auto config = inetHandler->getDeviceConfig();
@@ -39,7 +41,7 @@ namespace WakeOnLanImpl {
                         ongoingElection = false;
                         inetHandler->setManagerIp(m->ip);
                         inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
-                        // TODO : there's a new manager, assuming you are Synchronized
+                        log->info("Machine with IP {} is the new manager, election over.", m->ip);
                     break;
                     case Type::ElectionServiceElection:
                     {
@@ -62,6 +64,7 @@ namespace WakeOnLanImpl {
                     }
                     break;
                     case Type::ElectionServiceAnswer:
+                        log->info("Got answer from IP {}", m->ip);
                         ongoingElectionAnswered = true;
                     break;
                     default:
@@ -76,6 +79,7 @@ namespace WakeOnLanImpl {
     }
 
     HandlerType ElectionService::startElection() {
+        log->info("Starting new election.");
         ongoingElection = true;
         ongoingElectionAnswered = false;
         std::vector<Table::Participant> contenders = getContenders();
@@ -140,6 +144,7 @@ namespace WakeOnLanImpl {
 
     void ElectionService::announceVictory()
     {
+        log->info("Election won. Sending coordinator messages to all on group.");
         ongoingElection = false;
         inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
         
