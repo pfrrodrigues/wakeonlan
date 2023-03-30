@@ -14,6 +14,8 @@ namespace WakeOnLanImpl {
     bool Table::insert(const Participant &participant) {
         bool returnCode = false;
         std::lock_guard<std::mutex> lk(tableMutex);
+        if (data.find(participant.hostname) != data.end())
+            return true;
         returnCode = data.insert(std::make_pair(participant.hostname, participant)).second;
         if (returnCode) {
             updated = true;
