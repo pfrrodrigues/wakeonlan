@@ -35,6 +35,7 @@ namespace WakeOnLanImpl {
         std::unique_ptr<std::thread> t;                 ///< The service dedicated thread.
         bool active;                                    ///< Indicates service is active or not.
         bool ongoingElection;                           ///< Indicates there is an election happening
+        bool ongoingElectionAnswered;                   ///< Indicates there was an answer to the election message in current election
         std::shared_ptr<spdlog::logger> log;            ///< The ElectionService logger.
         Table &table;                                   ///< The singleton table.
         std::shared_ptr<NetworkHandler> inetHandler;    ///< A shared pointer to the unique Network handler.
