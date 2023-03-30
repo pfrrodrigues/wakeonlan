@@ -27,11 +27,8 @@ namespace WakeOnLanImpl {
                     switch (response.type) {
                         case Type::SleepStatusRequest:
                         {
-                            if(response.ip == managerIp)
-                            {
-                                std::lock_guard<std::mutex> lk(inetMutex);
-                                monitoringQueue.push(response);
-                            }
+                            std::lock_guard<std::mutex> lk(inetMutex);
+                            monitoringQueue.push(response);
                         }
                         break;
                         case Type::SleepServiceDiscovery:

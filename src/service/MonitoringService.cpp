@@ -71,7 +71,8 @@ namespace WakeOnLanImpl {
                         //           << participant.hostname << " @ " 
                         //           << participant.ip << std::endl; 
                         Message message = getSleepStatusRequest(seq);
-                        inetHandler->send(message, participant.ip);
+                        if (participant.status != Table::ParticipantStatus::Manager)
+                            inetHandler->send(message, participant.ip);
                     }
                     seq++;
                     timestamp = std::time(nullptr); // reset timer
@@ -129,7 +130,7 @@ namespace WakeOnLanImpl {
                         break;
                     }
                     msg = inetHandler->getFromMonitoringQueue();
-                    if(msg)
+                    if(msg && msg->ip == inetHandler->getManagerIp())
                     {
                         if(status == ServiceGlobalStatus::Syncing) {
                             inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
