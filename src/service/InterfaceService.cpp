@@ -101,6 +101,9 @@ namespace WakeOnLanImpl {
                     case Table::ParticipantStatus::Unknown:
                         status = "\033[93mUNKNOWN\033[0m";
                         break;
+                    case Table::ParticipantStatus::Manager:
+                        status = "\033[94mMANAGER\033[0m";
+                        break;
                     default:
                         break;
                 }
