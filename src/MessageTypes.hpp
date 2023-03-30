@@ -12,10 +12,13 @@ namespace WakeOnLanImpl {
  *
  */
 enum class Type {
-    SleepServiceDiscovery = 'D',    ///< Indicates the message is a SleepServiceDiscovery message.
-    SleepStatusRequest = 'R',       ///< Indicates the message is a SleepStatusRequest message.
-    SleepServiceExit = 'E',         ///< Indicates the message is a SleepServiceExit message.
-    Unknown = 'U'                   ///< Indicates a unknown type was parsed.
+    SleepServiceDiscovery = 'D',      ///< Indicates the message is a SleepServiceDiscovery message.
+    SleepStatusRequest = 'R',         ///< Indicates the message is a SleepStatusRequest message.
+    SleepServiceExit = 'E',           ///< Indicates the message is a SleepServiceExit message.
+    ElectionServiceElection = 'L',    ///< Indicates the message is a ElectionService election message.
+    ElectionServiceCoordinator = 'C', ///< Indicates the message is a ElectionService coordinator message.
+    ElectionServiceAnswer = 'A',      ///< Indicates the message is a ElectionService answer message.
+    Unknown = 'U'                     ///< Indicates a unknown type was parsed.
 };
 
 /**
