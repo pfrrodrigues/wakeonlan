@@ -63,7 +63,8 @@ namespace WakeOnLanImpl {
                     {
                         // sleeping_participants is initialized with every participant
                         // currently in the table
-                        sleeping_participants.push_back(participant.hostname);
+                        if (participant.status != Table::ParticipantStatus::Manager)
+                            sleeping_participants.push_back(participant.hostname);
 
                         // send sleep status request 
                         // std::cout << "Manager is sending sleep status request to "
