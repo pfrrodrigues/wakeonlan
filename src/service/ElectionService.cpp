@@ -193,6 +193,7 @@ namespace WakeOnLanImpl {
             result = self.getMacAddress().compare(p.mac);
             // if (result == 0), we have a draw, as MAC address is unique, assuming it's self
             // if (result <  0), compared mac address is shorter and will not be included
+            log->info("Comparing your MAC {} to opponents MAC {}. Result was {}.", self.getMacAddress(), p.mac, result);
             if (result > 0)
                 possibleWinners.push_back(p);                
         }
