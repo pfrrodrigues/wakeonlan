@@ -10,6 +10,7 @@ namespace WakeOnLanImpl {
         active(false),
         ongoingElection(false),
         ongoingElectionAnswered(false),
+        unreadElection(false),
         lastWin(0)
     {}
 
@@ -40,12 +41,18 @@ namespace WakeOnLanImpl {
                     case Type::ElectionServiceCoordinator:
                         ongoingElection = false;
                         inetHandler->setManagerIp(m->ip);
+                        {
+                            std::lock_guard<std::mutex> lk(newElectionMutex);
+                            newElectionResult = HandlerType::Participant;
+                            unreadElection = true;
+                        }
                         log->info("Machine with IP {} is the new manager, election over.", m->ip);
                     break;
                     case Type::ElectionServiceElection:
                     {
                         if(!ongoingElection)
                         {
+                            log->info("Got election message from IP {}.", m->ip);
                             // answer election message  
                             Message answer{};
                             answer.type = WakeOnLanImpl::Type::ElectionServiceAnswer;
@@ -60,11 +67,10 @@ namespace WakeOnLanImpl {
                             startElection();
                         }
                         // if there is an ongoing election, ignore message
-                        log->info("Got election message from IP {} but election is already happening.", m->ip);
                     }
                     break;
                     case Type::ElectionServiceAnswer:
-                        log->info("Got answer from IP {}", m->ip);
+                        log->info("Got election answer from IP {}", m->ip);
                         ongoingElectionAnswered = true;
                     break;
                     default:
@@ -76,6 +82,17 @@ namespace WakeOnLanImpl {
 
     void ElectionService::stop() {
         active = false;
+    }
+
+    HandlerType ElectionService::getNewElectionResult() {
+        if(unreadElection)
+        {
+            std::lock_guard<std::mutex> lk(newElectionMutex);
+            unreadElection = false;
+            return newElectionResult;
+        }
+        auto config = inetHandler->getDeviceConfig();
+        return config.getHandlerType();
     }
 
     HandlerType ElectionService::startElection() {

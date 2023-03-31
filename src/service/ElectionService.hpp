@@ -30,7 +30,17 @@ namespace WakeOnLanImpl {
         
         void stop();
 
+        /**
+         * Starts a new election and returns the result.         
+         * @return HandlerType, new role as decided in the election.
+         */
         HandlerType startElection();
+
+        /**
+         * Get results from elections started by another participant.         * 
+         * @return HandlerType, new role as decided in the election or current role if no new elections.
+         */
+        HandlerType getNewElectionResult();
     private:
         std::unique_ptr<std::thread> t;                 ///< The service dedicated thread.
         bool active;                                    ///< Indicates service is active or not.
@@ -40,6 +50,10 @@ namespace WakeOnLanImpl {
         Table &table;                                   ///< The singleton table.
         std::shared_ptr<NetworkHandler> inetHandler;    ///< A shared pointer to the unique Network handler.
         time_t lastWin;
+
+        std::mutex newElectionMutex;
+        bool unreadElection;
+        HandlerType newElectionResult;
 
         void announceVictory();
         void sendCoordinatorMsgs();

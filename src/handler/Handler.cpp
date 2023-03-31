@@ -42,6 +42,17 @@ namespace WakeOnLanImpl {
 
                     break;
                 default:
+                    electionResult = electionService->getNewElectionResult();
+                    
+                    if (electionResult != config.getHandlerType())
+                    {
+                        config = networkHandler->changeHandlerType(electionResult);
+                        networkHandler->changeStatus(ServiceGlobalStatus::Synchronized);
+
+                        discoveryService->notifyRoleChange();
+                        monitoringService->notifyRoleChange();
+                        interfaceService->notifyRoleChange();
+                    }
                     break;
                 }   
             }
