@@ -36,6 +36,7 @@ namespace WakeOnLanImpl {
         if (t)
             t->join();
 
+        log->info("Monitoring service operating as Manager.");
         active = true;
         t = std::make_unique<std::thread>([this]() {
             time_t timestamp;
@@ -55,7 +56,10 @@ namespace WakeOnLanImpl {
                     // participants still in sleeping_participants haven't answered and 
                     // the last call are considered to be Sleeping
                     for(auto& hostname : sleeping_participants)
+                    {
+                        log->info("Received no answer from {}. Changing status to SLEEPING.", hostname);
                         table.update(Table::ParticipantStatus::Sleeping, hostname);
+                    }
                     
                     // resets vectors
                     sleeping_participants.clear();
@@ -72,7 +76,10 @@ namespace WakeOnLanImpl {
                         //           << participant.ip << std::endl; 
                         Message message = getSleepStatusRequest(seq);
                         if (participant.status != Table::ParticipantStatus::Manager)
+                        {
+                            log->info("Sending sleep status request to {}", participant.hostname);
                             inetHandler->send(message, participant.ip);
+                        }
                     }
                     seq++;
                     timestamp = std::time(nullptr); // reset timer
@@ -87,6 +94,7 @@ namespace WakeOnLanImpl {
                     sleeping_participants.erase(std::find(sleeping_participants.begin(), 
                                                           sleeping_participants.end(), 
                                                           hostname));
+                    log->info("Received sleep status request answer from {}", hostname);
                     // std::cout << "Manager got answer from "
                     //           << msg->hostname << " @ "
                     //           << msg->ip << std::endl;
@@ -99,6 +107,8 @@ namespace WakeOnLanImpl {
     {
         if (t)
             t->join();
+
+        log->info("Monitoring service operating as Participant.");
 
         active = true;
         t = std::make_unique<std::thread>([this]() {
