@@ -40,7 +40,6 @@ namespace WakeOnLanImpl {
                     case Type::ElectionServiceCoordinator:
                         ongoingElection = false;
                         inetHandler->setManagerIp(m->ip);
-                        inetHandler->changeStatus(ServiceGlobalStatus::Synchronized);
                         log->info("Machine with IP {} is the new manager, election over.", m->ip);
                     break;
                     case Type::ElectionServiceElection:
