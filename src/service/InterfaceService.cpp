@@ -41,8 +41,8 @@ namespace WakeOnLanImpl {
         threads.push_back(table_th);
         threads.push_back(cmd_th);
 
-        std::cout << "\033[2J"     // clears terminal and moves cursor to (0,0)
-                  << "\033[1;0f";  // set cursor position to line 3, col 0
+        std::cout << "\033[2J" ;    // clears terminal and moves cursor to (0,0)
+                //   << "\033[1;0f";  // set cursor position to line 3, col 0
         std::flush(std::cout);
 
         int ret;
@@ -77,7 +77,6 @@ namespace WakeOnLanImpl {
         {
             newNumParticipants = 0;
             lastSyncParticipants = participantTable.get_participants_interface();
-            lastSyncManager = lastSyncParticipants[0]; // TODO: add method to table to get currant manager
 
             std::cout <<"\033[?25l"           // hides cursor
                       <<"\033[s"              // saves cursor position
@@ -107,8 +106,9 @@ namespace WakeOnLanImpl {
                     default:
                         break;
                 }
+                std::string you = config.getIpAddress() == lastSyncParticipants[i].hostname ? " (you)" : "";
                 std::cout <<"\033[K";
-                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].hostname << "|";
+                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].hostname << you << "|";
                 std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].ip << "|";
                 std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].mac << "|";
                 std::cout << std::left << std::setw(10) << std::setfill(' ') << status << "\n";
@@ -137,6 +137,7 @@ namespace WakeOnLanImpl {
 
     void InterfaceService::runCommandListener()
     {
+        std::cout << "Starting as participant. Available commands: EXIT" << std::endl;
         std::string cmd, response;
         while(keepRunning)
         {
@@ -220,7 +221,7 @@ namespace WakeOnLanImpl {
     std::string InterfaceService::processExitCmd()
     {
         kill(getpid(), SIGINT);
-        return "Sending exit message to manager " + lastSyncManager.hostname + " @ " + lastSyncManager.ip;  
+        return "Sending exit message to manager @ " + inetHandler->getManagerIp();  
     }
 
     void InterfaceService::sendExitMsg()
@@ -233,7 +234,7 @@ namespace WakeOnLanImpl {
         strncpy(exit_msg.hostname, config.getHostname().c_str(), config.getHostname().size());
         strncpy(exit_msg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
         strncpy(exit_msg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
-        inetHandler->send(exit_msg, lastSyncManager.ip);     
+        inetHandler->send(exit_msg, inetHandler->getManagerIp());     
     }
     
     std::vector<std::string> InterfaceService::splitCmd(std::string cmd)

@@ -63,7 +63,6 @@ namespace WakeOnLanImpl {
 
         std::vector<Table::Participant> lastSyncParticipants;
         int numParticipants;
-        Table::Participant lastSyncManager;
         std::shared_ptr<spdlog::logger> log;            ///< The InterfaceService logger.
         std::vector<pthread_t> threads;                 ///< The vector of the dedicated threads.
         Table &participantTable;                        ///< The singleton table.
