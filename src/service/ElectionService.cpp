@@ -61,6 +61,7 @@ namespace WakeOnLanImpl {
                             startElection();
                         }
                         // if there is an ongoing election, ignore message
+                        log->info("Got election message from IP {} but election is already happening.", m->ip);
                     }
                     break;
                     case Type::ElectionServiceAnswer:
