@@ -12,48 +12,43 @@ namespace WakeOnLan {
     public:
          /**
           * Config constructor
-          *
-          * @param params The parameters provided for Config. In case of the API instance must be a
-          * manager handler, the parameters must be 'manager <interface>' and quantity equals 2. Otherwise,
-          * params[0] contains the interface name to bind and quantity equals 1.
-          * @param quantity The parameters quantity.
           */
-        Config(char** params, const int &quantity);
+        Config();
 
         /**
          * Gets the hostname.
          *
          * @returns A string containing the hostname.
          */
-        std::string getHostname();
+        std::string getHostname() const;
 
         /**
          * Gets the IP address.
          *
          * @returns A string containing the IP address.
          */
-        std::string getIpAddress();
+        std::string getIpAddress() const;
 
         /**
          * Gets the MAC address.
          *
          * @returns A string containing the MAC address.
          */
-        std::string getMacAddress();
+        std::string getMacAddress() const;
 
         /**
          * Gets the interface.
          *
          * @returns A string containing the interface.
          */
-        std::string getIface();
+        std::string getIface() const;
 
         /**
          * Gets the handler type.
          *
          * @returns A enum containing the handler type.
          */
-        HandlerType getHandlerType();
+        HandlerType getHandlerType() const;
     private:
         HandlerType handlerType; ///< The configured handler type. Default is Participant.
         std::string hostname;    ///< The hostname of the local host.

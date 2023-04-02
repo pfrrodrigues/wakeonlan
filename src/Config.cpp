@@ -14,40 +14,31 @@ namespace WakeOnLan {
         explicit ConfigParserException(const std::string &message) : std::runtime_error(message.data()) {}
     };
 
-    Config::Config(char **params, const int &quantity)
+    Config::Config()
             : handlerType(Participant) {
         try {
-            if (quantity < 1) {
-                std::stringstream ss;
-                ss << "ConfigParserException: few arguments, but application expects 1 or 2.\n";
-                ss << "./wolapp ['manager'] <interface>";
-                throw ConfigParserException(ss.str());
-            }
-
-            if (quantity == 2) {
-                std::string arg(params[0]);
-                if (arg != "manager") {
-                    std::stringstream ss;
-                    ss << "ConfigParserException: error in interpret handler type '";
-                    ss << arg << "'\n";
-                    ss << "./wolapp ['manager'] <interface>";
-                    throw ConfigParserException(ss.str());
-                }
-                handlerType = Manager;
-                interface = params[1];
-            }
-            else {
-                interface = params[0];
-            }
+            /* Get the host currently-active interface */
+            std::ifstream ifs;
+            std::string getIfaceCmd(
+                    "(ip route get 1.1.1.1 | grep -Po '(?<=dev\\s)\\w+' | cut -f1 -d ' ') > iface.out"
+            );
+            std::system(getIfaceCmd.c_str());
+            ifs.open("iface.out");
+            getline(ifs, interface);
+            std::system("rm -f iface.out");
+            ifs.close();
 
             /* Get the MAC address */
             std::string command("cat /sys/class/net/");
             command.append(interface)
                     .append("/address > mac.out");
-            std::system(command.c_str());
-            std::ifstream ifs("mac.out");
+            if (std::system(command.c_str()) == -1)
+                ConfigParserException("No such interface: " + std::string(interface));
+            ifs.open("mac.out");
             getline(ifs, mac);
             std::transform(mac.begin(), mac.end(), mac.begin(), ::toupper);
+            std::system("rm -f mac.out");
+            ifs.close();
 
             /* Get the hostname */
             char host[150];
@@ -71,14 +62,14 @@ namespace WakeOnLan {
         }
     }
 
-    std::string Config::getIface() { return interface; }
+    std::string Config::getIface() const { return interface; }
 
-    std::string Config::getHostname() { return hostname; }
+    std::string Config::getHostname() const { return hostname; }
 
-    std::string Config::getIpAddress() { return ip; }
+    std::string Config::getIpAddress() const { return ip; }
 
-    std::string Config::getMacAddress() { return mac; }
+    std::string Config::getMacAddress() const { return mac; }
 
-    HandlerType Config::getHandlerType() { return handlerType; }
+    HandlerType Config::getHandlerType() const { return handlerType; }
 
 }

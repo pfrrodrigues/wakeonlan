@@ -21,14 +21,7 @@ int main(int argc, char** argv) {
     /*************************************
     * Setting up the API configuration
     *************************************/
-    /*
-     * Example calling syntax
-     * [] - optional
-     * <> - mandatory
-     * ./wolapp ['manager'] <interface>
-     * */
-    const int argSize = argc - 1;
-    WakeOnLan::Config config(&argv[1], argSize);
+    WakeOnLan::Config config;
 
     /*************************************
     * API instantiation
