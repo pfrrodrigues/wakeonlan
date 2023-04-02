@@ -58,8 +58,6 @@ namespace WakeOnLanImpl {
         * @returns A bool indicating the message was sent.
         */
         bool send(const Message &message, const std::string &ip);
-        
-        bool send(const char * buffer, const std::string &ip, size_t size);
 
         /**
          * Gets the older Message from the Discovery service queue. Messages of type SleepServiceDiscovery and

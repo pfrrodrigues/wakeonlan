@@ -4,24 +4,27 @@
 #include <iostream>
 
 namespace WakeOnLanImpl {
+#define WAKEONLAN_FIELD_TIMESTAMP_SIZE 80
+#define WAKEONLAN_FIELD_HOSTNAME_SIZE 150
+#define WAKEONLAN_FIELD_IP_SIZE 150
+#define WAKEONLAN_FIELD_MAC_SIZE 17
+#define WAKEONLAN_FIELD_STATUS_SIZE 1
 #pragma pack(push, 1)
 
 /**
  * @enum Type
  * The Message type.
- *
  */
 enum class Type {
     SleepServiceDiscovery = 'D',    ///< Indicates the message is a SleepServiceDiscovery message.
     SleepStatusRequest = 'R',       ///< Indicates the message is a SleepStatusRequest message.
     SleepServiceExit = 'E',         ///< Indicates the message is a SleepServiceExit message.
-    Unknown = 'U',                   ///< Indicates a unknown type was parsed.
-    TableUpdate = 'T'                    ///< Indicates the message contains a table update
+    Unknown = 'U',                  ///< Indicates a unknown type was parsed.
+    TableUpdate = 'T'               ///< Indicates the message contains a table update.
 };
 
 struct TableUpdateHeader {
-    uint32_t seq;
-    uint8_t noEntries;
+    uint8_t noEntries;              ///< Number of table entries contained on the message.
 };
 
 /**
@@ -29,20 +32,17 @@ struct TableUpdateHeader {
  * The struct represents the messages send/received by the API services.
  */
 struct Message {
-    Type type;            ///< The message type.
-    uint32_t msgSeqNum;   ///< The message sequence number (used by Discovery service).
-    char hostname[150];   ///< The source/destination hostname.
-    char ip[150];         ///< The source/destination IP address.
-    char mac[17];         ///< The source/destination MAC address.
-    bool reserved;
-    char * data;
-
-    /* fields of TableUpdate
-     * HEADER
-     * timestamp(80) | hostname (150) | ip(150) | mac(17) | status(1)
-     * ...
-     * timestamp(80) | hostname (150) | ip(150) | mac(17) | status(1)
-     */
+    Type type;                                        ///< The message type.
+    uint32_t msgSeqNum;                               ///< The message sequence number (used by Discovery service and TableUpdate).
+    char hostname[WAKEONLAN_FIELD_HOSTNAME_SIZE];     ///< The source/destination hostname.
+    char ip[WAKEONLAN_FIELD_IP_SIZE];                 ///< The source/destination IP address.
+    char mac[WAKEONLAN_FIELD_MAC_SIZE];               ///< The source/destination MAC address.
+    char data[sizeof(TableUpdateHeader) + 4 *
+            ( WAKEONLAN_FIELD_TIMESTAMP_SIZE
+              + WAKEONLAN_FIELD_HOSTNAME_SIZE
+              + WAKEONLAN_FIELD_IP_SIZE
+              + WAKEONLAN_FIELD_MAC_SIZE
+              + WAKEONLAN_FIELD_STATUS_SIZE )];       ///< Contains the table entries (used on TableUpdate message).
 };
 
 

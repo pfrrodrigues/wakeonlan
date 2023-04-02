@@ -61,7 +61,7 @@ namespace WakeOnLanImpl {
         * @param participant A Participant reference representing the participant that must be inserted on the table.
         * @returns A bool indicating the insertion on the participant on the table was successful.
         */
-        bool insert(const Participant &participant);
+        std::pair<uint32_t, std::vector<Participant>> insert(const Participant &participant);
 
         bool transaction(const uint32_t & seqNo, const std::vector<Participant> & tbl);
 
@@ -76,7 +76,7 @@ namespace WakeOnLanImpl {
         * @param hostname A string reference.
         * @returns A bool indicating the update on the participant status was successful
         */
-        bool update(const ParticipantStatus &status, const std::string &hostname);
+        std::pair<uint32_t, std::vector<Table::Participant>> update(const ParticipantStatus &status, const std::string &hostname);
 
         /**
         * Removes of the table a previously inserted Participant. The function checks if the
@@ -104,8 +104,6 @@ namespace WakeOnLanImpl {
          * @return A vector of registered participants.
          */
         std::vector<Participant> get_participants_interface();
-
-        uint32_t seq;
     private:
         Table() = default;
 
@@ -118,5 +116,6 @@ namespace WakeOnLanImpl {
         std::mutex tableMutex;                              ///< The mutex to manage access to the table representation.
         std::shared_ptr<spdlog::logger> log;                ///< The Table logger.
         std::unordered_map<std::string, Participant> data;  ///< The table representation.
+        uint32_t seq;
     };
 } // namespace WakeOnLanImpl

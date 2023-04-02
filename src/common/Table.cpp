@@ -11,19 +11,25 @@ namespace WakeOnLanImpl {
         return instance;
     }
 
-    bool Table::insert(const Participant &participant) {
-        bool returnCode = false;
+    std::pair<uint32_t, std::vector<Table::Participant>> Table::insert(const Participant &participant) {
+        bool opSucceded = false;
+        uint32_t updateSeqNo = 0;
         std::lock_guard<std::mutex> lk(tableMutex);
-        returnCode = data.insert(std::make_pair(participant.hostname, participant)).second;
-        if (returnCode) {
+        opSucceded = data.insert(std::make_pair(participant.hostname, participant)).second;
+        if (opSucceded) {
             if (data.size() == 2)
                 seq = 1;
             else if (data.size() > 2)
                 seq++;
+            updateSeqNo = seq;
             updated = true;
             cv.notify_one();
         }
-        return returnCode;
+        std::vector<Table::Participant> members;
+        members.reserve(data.size());
+        for(auto& entry: data)
+            members.push_back(entry.second);
+        return std::make_pair(updateSeqNo, members);
     }
 
     bool Table::transaction(const uint32_t & seqNo, const std::vector<Participant> & tbl) {
@@ -47,8 +53,9 @@ namespace WakeOnLanImpl {
         return returnCode;
     }
 
-    bool Table::update(const ParticipantStatus &status, const std::string &hostname) {
-	bool returnCode = false;
+    std::pair<uint32_t, std::vector<Table::Participant>> Table::update(const ParticipantStatus &status, const std::string &hostname) {
+        bool opSucceded = false;
+        uint32_t updateSeqNo = 0;
         std::lock_guard<std::mutex> lk(tableMutex);
         auto it = data.find(hostname);
         if (it != data.end()) {
@@ -58,10 +65,14 @@ namespace WakeOnLanImpl {
                 updated = true;
                 cv.notify_one();
                 seq++;
+                updateSeqNo = seq;
             }
-            returnCode = true;
         }
-        return returnCode;
+        std::vector<Table::Participant> members;
+        members.reserve(data.size());
+        for(auto& entry: data)
+            members.push_back(entry.second);
+        return std::make_pair(updateSeqNo, members);
     }
 
     bool Table::remove(const std::string &hostname) {

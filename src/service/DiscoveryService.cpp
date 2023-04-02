@@ -42,116 +42,13 @@ namespace WakeOnLanImpl {
                     p.hostname = config.getHostname();
                     p.status = Table::ParticipantStatus::Manager;
                     table.insert(p);
+                    log->info("Added manager entry on the group table");
                 }
 
                 if (inetHandler->getGlobalStatus() == Synchronized) {
                     /* Sent a broadcast packet each 10 seconds */
                     if (lastTimestamp < (std::time(nullptr) - WAKEONLAN_DISCOVERY_REQUEST_WINDOW)) {
-
                         Message broadcastMsg{};
-//                        Message msg{};
-//                        msg.type = Type::TableUpdate;
-//                        msg.msgSeqNum = 1;
-//                        bzero(msg.hostname, sizeof(msg.hostname));
-//                        bzero(msg.ip, sizeof(msg.ip));
-//                        bzero(msg.mac, sizeof(msg.mac));
-//                        strncpy(msg.hostname, config.getHostname().c_str(), config.getHostname().size());
-//                        strncpy(msg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
-//                        strncpy(msg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
-//                        msg.reserved = true;
-//
-//                        /* se coloca na tabela */
-//                        auto mt  = std::chrono::system_clock::now();
-//                        ::time_t tick = std::chrono::system_clock::to_time_t(mt);
-//                        struct tm * tick_time = ::gmtime(&tick);
-//                        char buffer[80];
-//                        Table::Participant p;
-//                        ::strftime(buffer, 80, "%d-%m-%Y %H:%M:%S", tick_time);
-//                        p.electedTimestamp = buffer;
-//                        p.ip = config.getIpAddress();
-//                        p.mac = config.getMacAddress();
-//                        p.hostname = config.getHostname();
-//                        p.status = Table::ParticipantStatus::Manager;
-//
-//                        /* Colocar participantes no buffer */
-//                        // header
-//                        // timestamp(80) | hostname (150) | ip(150) | mac(17) | status(1)
-////                        msg.data = (char*) malloc(sizeof(TableUpdateHeader) + 80 + 150 + 150 + 17 + 1);
-//                        size_t offset = 0;
-//                        // header
-//                        uint32_t seq = 1;
-//                        uint8_t noEntries = 2;
-//                        char electedTimestamp[80];
-//                        char hostname[150];
-//                        char ip[150];
-//                        char mac[17];
-//
-////                        msg.data = (char*) malloc(sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1));
-//                        msg.data = new char[sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1)];
-//                        bzero(msg.data, 403+sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1));
-//
-//                        memcpy(&msg.data[offset], &seq, sizeof(seq));
-//                        offset += sizeof(seq);
-//
-//                        memcpy(&msg.data[offset], &noEntries, sizeof(noEntries));
-//                        offset += sizeof(noEntries);
-//
-//                        // messages
-//                        for (int i=0; i<noEntries; i++) {
-//                            bzero(electedTimestamp, 80);
-//                            bzero(hostname, 150);
-//                            bzero(ip, 150);
-//                            bzero(mac, 17);
-//                            if (i == 0) {
-//                                memcpy(electedTimestamp, p.electedTimestamp.c_str(), p.electedTimestamp.size());
-//                                memcpy(hostname, p.hostname.c_str(), p.hostname.size());
-//                                memcpy(ip, p.ip.c_str(), p.ip.size());
-//                                memcpy(mac, p.mac.c_str(), p.mac.size());
-//                            }
-//                            else {
-//                                strncpy(electedTimestamp, (char*)"N/A", 3);
-//                                strncpy(hostname, (char*)"participant@hostname", 20);
-//                                strncpy(ip, (char*)"127.0.0.1", 9);
-//                                strncpy(mac, (char*)"11:22:33:44:55:66", 17);
-//                            }
-//
-//                            memcpy(&msg.data[offset], electedTimestamp, 80);
-//                            offset += 80;
-//
-//                            memcpy(&msg.data[offset], hostname, 150);
-//                            offset += 150;
-//
-//                            memcpy(&msg.data[offset], ip, 150);
-//                            offset += 150;
-//
-//                            memcpy(&msg.data[offset], mac, 17);
-//                            offset += 17;
-//
-//                            uint8_t status;
-//                            if (i==2)
-//                                std::cout << "";
-//                            if (i==0)
-//                             status = static_cast<uint8_t>(p.status);
-//                            else
-//                                status = static_cast<uint8_t>(Table::ParticipantStatus::Awaken);
-//                            memcpy(&msg.data[offset], &status, 1);
-//                            offset += 1;
-//                        }
-//
-//                        char buff[326 + sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1)];
-//                        if (msg.reserved) {
-//                            memcpy(buff, &msg, 326);
-//                            memcpy(&buff[326], msg.data, sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1));
-//
-//                            inetHandler->send(buff, "127.0.0.1", 326 + sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1));
-//                        }
-//                        else {
-//
-//                            inetHandler->send(msg, WAKEONLAN_BROADCAST_ADDRESS);
-//                        }
-//                      delete [] msg.data;
-//
-
                         broadcastMsg.type = WakeOnLanImpl::Type::SleepServiceDiscovery;
                         broadcastMsg.msgSeqNum = WAKEONLAN_SYN;
                         bzero(broadcastMsg.hostname, sizeof(broadcastMsg.hostname));
@@ -161,6 +58,7 @@ namespace WakeOnLanImpl {
                         strncpy(broadcastMsg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
                         strncpy(broadcastMsg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
                         inetHandler->send(broadcastMsg, WAKEONLAN_BROADCAST_ADDRESS);
+
                         lastTimestamp = std::time(nullptr);
                     }
 
@@ -169,91 +67,83 @@ namespace WakeOnLanImpl {
                         switch (m->type) {
                             case Type::SleepServiceDiscovery:
                                 if (m->msgSeqNum == WAKEONLAN_SYN_ACK) {
-                                    Table::Participant p;
-                                    p.ip = m->ip;
-                                    p.mac = m->mac;
-                                    p.hostname = m->hostname;
-                                    p.status = Table::ParticipantStatus::Unknown;
+                                    Table::Participant newParticipant;
+                                    newParticipant.ip = m->ip;
+                                    newParticipant.mac = m->mac;
+                                    newParticipant.hostname = m->hostname;
+                                    newParticipant.status = Table::ParticipantStatus::Unknown;
 
-                                    if (table.insert(p)) {
+                                    auto ret = table.insert(newParticipant);
+                                    if ( ret.first != 0) {
                                         log->info("Participant has joined the group [Hostname={}, IP={}, MAC={}]",
-                                                  m->hostname, m->ip,m->mac);
+                                                  newParticipant.hostname, newParticipant.ip, newParticipant.mac);
 
-                                        /* Multicast group */
-                                        auto group = table.get_participants_monitoring();
-                                        auto seq_no = table.seq;
-                                        Message msg{};
-                                        msg.type = Type::TableUpdate;
-                                        msg.msgSeqNum = 1;
-                                        bzero(msg.hostname, sizeof(msg.hostname));
-                                        bzero(msg.ip, sizeof(msg.ip));
-                                        bzero(msg.mac, sizeof(msg.mac));
-                                        strncpy(msg.hostname, config.getHostname().c_str(), config.getHostname().size());
-                                        strncpy(msg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
-                                        strncpy(msg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
-                                        msg.reserved = true;
+                                        /**
+                                         * Send multicast message
+                                         */
+                                        /* Manager information */
+                                        Message multicastMsg{};
+                                        multicastMsg.type = Type::TableUpdate;
+                                        multicastMsg.msgSeqNum = ret.first;
+                                        bzero(multicastMsg.hostname, sizeof(multicastMsg.hostname));
+                                        bzero(multicastMsg.ip, sizeof(multicastMsg.ip));
+                                        bzero(multicastMsg.mac, sizeof(multicastMsg.mac));
+                                        strncpy(multicastMsg.hostname, config.getHostname().c_str(), config.getHostname().size());
+                                        strncpy(multicastMsg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
+                                        strncpy(multicastMsg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
 
-                                        // allocates data pointer and inserts participants information on the message
-                                        // TableHeader info
                                         size_t offset = 0;
-                                        uint32_t seq = seq_no;
-                                        uint8_t noEntries = group.size();
-                                        char electedTimestamp[80];
-                                        char hostname[150];
-                                        char ip[150];
-                                        char mac[17];
+                                        uint8_t noEntries = ret.second.size();
+                                        char electedTimestamp[WAKEONLAN_FIELD_TIMESTAMP_SIZE];
+                                        char hostname[WAKEONLAN_FIELD_HOSTNAME_SIZE];
+                                        char ip[WAKEONLAN_FIELD_IP_SIZE];
+                                        char mac[WAKEONLAN_FIELD_MAC_SIZE];
 
-                                        msg.data = new char[sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1)];
-                                        bzero(msg.data, sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1));
-
-                                        memcpy(&msg.data[offset], &seq, sizeof(seq));
-                                        offset += sizeof(seq);
-
-                                        memcpy(&msg.data[offset], &noEntries, sizeof(noEntries));
+                                        memcpy(&multicastMsg.data[offset], &noEntries, sizeof(noEntries));
                                         offset += sizeof(noEntries);
 
-                                        // messages
-                                        for (auto & member : group) {
-                                            bzero(electedTimestamp, 80);
-                                            bzero(hostname, 150);
-                                            bzero(ip, 150);
-                                            bzero(mac, 17);
+                                        /* Inserts table entries on the message */
+                                        assert(ret.second.size() < 5);
+                                        for (auto & member : ret.second) {
+                                            bzero(electedTimestamp, WAKEONLAN_FIELD_TIMESTAMP_SIZE);
+                                            bzero(hostname, WAKEONLAN_FIELD_HOSTNAME_SIZE);
+                                            bzero(ip, WAKEONLAN_FIELD_IP_SIZE);
+                                            bzero(mac, WAKEONLAN_FIELD_MAC_SIZE);
 
                                             memcpy(electedTimestamp, member.electedTimestamp.c_str(), member.electedTimestamp.size());
                                             memcpy(hostname, member.hostname.c_str(), member.hostname.size());
                                             memcpy(ip, member.ip.c_str(), member.ip.size());
                                             memcpy(mac, member.mac.c_str(), member.mac.size());
 
+                                            memcpy(&multicastMsg.data[offset], electedTimestamp, WAKEONLAN_FIELD_TIMESTAMP_SIZE);
+                                            offset += WAKEONLAN_FIELD_TIMESTAMP_SIZE;
 
-                                            memcpy(&msg.data[offset], electedTimestamp, 80);
-                                            offset += 80;
+                                            memcpy(&multicastMsg.data[offset], hostname, WAKEONLAN_FIELD_HOSTNAME_SIZE);
+                                            offset += WAKEONLAN_FIELD_HOSTNAME_SIZE;
 
-                                            memcpy(&msg.data[offset], hostname, 150);
-                                            offset += 150;
+                                            memcpy(&multicastMsg.data[offset], ip, WAKEONLAN_FIELD_IP_SIZE);
+                                            offset += WAKEONLAN_FIELD_IP_SIZE;
 
-                                            memcpy(&msg.data[offset], ip, 150);
-                                            offset += 150;
-
-                                            memcpy(&msg.data[offset], mac, 17);
-                                            offset += 17;
+                                            memcpy(&multicastMsg.data[offset], mac, WAKEONLAN_FIELD_MAC_SIZE);
+                                            offset += WAKEONLAN_FIELD_MAC_SIZE;
 
                                             auto status = static_cast<uint8_t>(member.status);
-                                            memcpy(&msg.data[offset], &status, 1);
-                                            offset += 1;
+                                            memcpy(&multicastMsg.data[offset], &status, WAKEONLAN_FIELD_STATUS_SIZE);
+                                            offset += WAKEONLAN_FIELD_STATUS_SIZE;
                                         }
 
-                                        if (msg.reserved) {
-                                            char buff[326 + sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1)];
-                                            memcpy(buff, &msg, 326);
-                                            memcpy(&buff[326], msg.data, sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1));
-
-                                            for (auto & member : group) {
-                                                if (member.status != Table::ParticipantStatus::Manager
-                                                    || member.status != Table::ParticipantStatus::Unknown)
-                                                    inetHandler->send(buff, member.ip, 326 + sizeof(TableUpdateHeader) + noEntries * (80 + 150 + 150 + 17 + 1));
+                                        log->info("Sending a MULTICAST message to the group [seq={} no_entries={}]", multicastMsg.msgSeqNum, noEntries);
+                                        for (const auto & member : ret.second) {
+                                            if (member.status != Table::ParticipantStatus::Manager
+                                                || member.status != Table::ParticipantStatus::Unknown) {
+                                                inetHandler->send(multicastMsg, member.ip);
+                                                log->info("Sent a TableUpdate UNICAST message to {}", member.ip);
                                             }
                                         }
-                                        delete[] msg.data;
+                                    }
+                                    else {
+                                        log->warn("Failed to insert participant on the group [Hostname={}, IP={}, MAC={}]",
+                                                  newParticipant.hostname, newParticipant.ip, newParticipant.mac);
                                     }
                                 }
                                 break;

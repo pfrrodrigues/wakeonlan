@@ -61,13 +61,6 @@ namespace WakeOnLanImpl {
         }
     }
 
-    bool NetworkHandler::send(const char * buffer, const std::string &ip, size_t size) {
-        std::lock_guard<std::mutex> lk(inetMutex);
-        UdpSocket socket(ip, SERVICE_PORT);
-        socket.send(buffer, size);
-        return true;
-    }
-
     bool NetworkHandler::send(const Message &message, const std::string &ip) {
         std::lock_guard<std::mutex> lk(inetMutex);
         UdpSocket socket(ip, SERVICE_PORT);
