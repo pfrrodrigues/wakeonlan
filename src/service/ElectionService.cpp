@@ -2,7 +2,8 @@
 #include <ctime>
 
 namespace WakeOnLanImpl {
-    #define WAKEONLAN_ELECTION_TIMEOUT 5 
+    #define WAKEONLAN_ELECTION_TIMEOUT 25 
+    #define WAKEONLAN_ELECTION_ANSWER_TIMEOUT 5
 
     ElectionService::ElectionService(Table &t, std::shared_ptr<NetworkHandler> nh)
         : table(t),
@@ -76,6 +77,11 @@ namespace WakeOnLanImpl {
                     default:
                         break;
                     }
+                if (ongoingElection && std::time(0) > ongoingElectionStart + WAKEONLAN_ELECTION_TIMEOUT)
+                {
+                    log->info("Election timed-out");
+                    ongoingElection = false;
+                }
             }
         });
     }
@@ -99,6 +105,7 @@ namespace WakeOnLanImpl {
         log->info("Starting new election.");
         ongoingElection = true;
         ongoingElectionAnswered = false;
+        ongoingElectionStart = std::time(0);
         std::vector<Table::Participant> contenders = getContenders();
         if (sendElectionMsgs(contenders) == HandlerType::Manager) // got no answer, assuming you won 
         {
@@ -128,7 +135,7 @@ namespace WakeOnLanImpl {
 
         // wait N seconds 
         time_t timer = std::time(0);
-        while(std::time(0) - timer <= WAKEONLAN_ELECTION_TIMEOUT) {
+        while(std::time(0) - timer <= WAKEONLAN_ELECTION_ANSWER_TIMEOUT) {
             if(ongoingElectionAnswered)
                 return HandlerType::Participant;
         }
