@@ -41,8 +41,8 @@ namespace WakeOnLanImpl {
         threads.push_back(table_th);
         threads.push_back(cmd_th);
 
-        std::cout << "\033[2J" ;    // clears terminal and moves cursor to (0,0)
-                //   << "\033[1;0f";  // set cursor position to line 3, col 0
+        std::cout << "\033[2J"     // clears terminal and moves cursor to (0,0)
+                  << "\033[0;0f";  // set cursor position to line 3, col 0
         std::flush(std::cout);
 
         int ret;
