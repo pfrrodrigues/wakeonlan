@@ -34,6 +34,7 @@ namespace WakeOnLanImpl {
         * @return None.
         */
         void send(const Message &message);
+        void send(const char * buffer, size_t size);
 
         /**
         * Sends a magic packet.

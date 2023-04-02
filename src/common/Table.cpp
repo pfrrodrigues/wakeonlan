@@ -16,9 +16,34 @@ namespace WakeOnLanImpl {
         std::lock_guard<std::mutex> lk(tableMutex);
         returnCode = data.insert(std::make_pair(participant.hostname, participant)).second;
         if (returnCode) {
+            if (data.size() == 2)
+                seq = 1;
+            else if (data.size() > 2)
+                seq++;
             updated = true;
             cv.notify_one();
         }
+        return returnCode;
+    }
+
+    bool Table::transaction(const uint32_t & seqNo, const std::vector<Participant> & tbl) {
+        bool returnCode = false;
+        std::lock_guard<std::mutex> lk(tableMutex);
+
+        data.clear();
+        for (const auto& member : tbl) {
+            returnCode = data.insert(std::make_pair(member.hostname, member)).second;
+            if (!returnCode) {
+                log->error("Error on processing transaction {}", seqNo);
+            }
+        }
+        seq = seqNo;
+
+        if (returnCode) {
+            updated = true;
+            cv.notify_one();
+        }
+
         return returnCode;
     }
 
@@ -32,6 +57,7 @@ namespace WakeOnLanImpl {
                 it->second.status = status;
                 updated = true;
                 cv.notify_one();
+                seq++;
             }
             returnCode = true;
         }

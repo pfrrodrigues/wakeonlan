@@ -38,6 +38,12 @@ namespace WakeOnLanImpl {
                             discoveryQueue.push(response);
                         }
                         break;
+                        case Type::TableUpdate:
+                        {
+                            std::lock_guard<std::mutex> lk(inetMutex);
+                            monitoringQueue.push(response);
+                        }
+                        break;
                         default:
                             log->warn("Network handler (internal): received a message with unknown type");
                             break;
@@ -53,6 +59,13 @@ namespace WakeOnLanImpl {
         if (t->joinable()) {
             t->join();
         }
+    }
+
+    bool NetworkHandler::send(const char * buffer, const std::string &ip, size_t size) {
+        std::lock_guard<std::mutex> lk(inetMutex);
+        UdpSocket socket(ip, SERVICE_PORT);
+        socket.send(buffer, size);
+        return true;
     }
 
     bool NetworkHandler::send(const Message &message, const std::string &ip) {

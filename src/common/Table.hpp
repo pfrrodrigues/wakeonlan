@@ -25,7 +25,8 @@ namespace WakeOnLanImpl {
         enum class ParticipantStatus {
             Awaken = 0,       ///< The participant is answering to the services requests.
             Sleeping = 1,     ///< The participant is part of the group and is not answering to the service requests.
-            Unknown = 2       ///< The initial state of a added participant. The state changes to Awaken after manager receives a response to SleepStatusRequest.
+            Unknown = 2,       ///< The initial state of a added participant. The state changes to Awaken after manager receives a response to SleepStatusRequest.
+            Manager = 3       ///< The initial state of a added participant. The state changes to Awaken after manager receives a response to SleepStatusRequest.
         };
 
         /**
@@ -35,6 +36,7 @@ namespace WakeOnLanImpl {
          * contains the hostname, IP address, MAC address, and status information.
          */
         struct Participant {
+            std::string electedTimestamp;
             std::string hostname;       ///< The participant hostname.
             std::string ip;             ///< The participant IP address.
             std::string mac;            ///< The participant MAC address.
@@ -60,6 +62,8 @@ namespace WakeOnLanImpl {
         * @returns A bool indicating the insertion on the participant on the table was successful.
         */
         bool insert(const Participant &participant);
+
+        bool transaction(const uint32_t & seqNo, const std::vector<Participant> & tbl);
 
         /**
         * Updates the status of a participant of the table. The function checks if the
@@ -100,6 +104,8 @@ namespace WakeOnLanImpl {
          * @return A vector of registered participants.
          */
         std::vector<Participant> get_participants_interface();
+
+        uint32_t seq;
     private:
         Table() = default;
 

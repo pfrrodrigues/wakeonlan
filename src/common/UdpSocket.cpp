@@ -57,6 +57,16 @@ namespace WakeOnLanImpl {
         size_t size = sizeof(message);
         sendto(fd,
                &message,
+               size,                        // TODO: remover reserved e data de message
+               MSG_CONFIRM,
+               (const struct sockaddr *) &sockaddr,
+               sizeof(sockaddr)
+        );
+    }
+
+    void UdpSocket::send(const char * buffer, size_t size) {
+        sendto(fd,
+               buffer,
                size,
                MSG_CONFIRM,
                (const struct sockaddr *) &sockaddr,
@@ -65,15 +75,33 @@ namespace WakeOnLanImpl {
     }
 
     void UdpSocket::receive(Message *buffer) {
+        char buff[2048];
         size_t msg_size = sizeof(Message);
         struct sockaddr_in client_addr{};
         uint32_t size = sizeof(client_addr);
         int n = recvfrom(fd,
-                         buffer,
-                         msg_size,
+                         buff,
+                         2048,
                          MSG_WAITALL,
                          (struct sockaddr *) &client_addr,
                          reinterpret_cast<socklen_t *>(&size));
+        if (n != -1) {
+            auto m = reinterpret_cast<Message *>(buff);
+            buffer->type = m->type;
+            buffer->msgSeqNum = m->msgSeqNum;
+            strncpy(buffer->hostname, m->hostname, 150);
+            strncpy(buffer->ip, m->ip, 150);
+            strncpy(buffer->mac, m->mac, 17);
+            buffer->reserved = m->reserved;
+
+            if (buffer->type == Type::TableUpdate) {
+                auto header = reinterpret_cast<TableUpdateHeader*>(&buff[326]);
+                auto sz = header->noEntries;
+                buffer->data = new char[sizeof(TableUpdateHeader) + sz * (80 + 150 + 150 + 17 + 1)];
+                auto size_data = sizeof(TableUpdateHeader) + sz * (80 + 150 + 150 + 17 + 1);
+                memcpy(buffer->data, &buff[326], size_data);
+            }
+        }
     }
 
     void UdpSocket::closeSocket() {

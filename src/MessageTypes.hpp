@@ -15,7 +15,13 @@ enum class Type {
     SleepServiceDiscovery = 'D',    ///< Indicates the message is a SleepServiceDiscovery message.
     SleepStatusRequest = 'R',       ///< Indicates the message is a SleepStatusRequest message.
     SleepServiceExit = 'E',         ///< Indicates the message is a SleepServiceExit message.
-    Unknown = 'U'                   ///< Indicates a unknown type was parsed.
+    Unknown = 'U',                   ///< Indicates a unknown type was parsed.
+    TableUpdate = 'T'                    ///< Indicates the message contains a table update
+};
+
+struct TableUpdateHeader {
+    uint32_t seq;
+    uint8_t noEntries;
 };
 
 /**
@@ -28,7 +34,17 @@ struct Message {
     char hostname[150];   ///< The source/destination hostname.
     char ip[150];         ///< The source/destination IP address.
     char mac[17];         ///< The source/destination MAC address.
+    bool reserved;
+    char * data;
+
+    /* fields of TableUpdate
+     * HEADER
+     * timestamp(80) | hostname (150) | ip(150) | mac(17) | status(1)
+     * ...
+     * timestamp(80) | hostname (150) | ip(150) | mac(17) | status(1)
+     */
 };
+
 
 inline std::ostream& operator<<(std::ostream &os, const Message &message) {
     os << "Message [\n";
