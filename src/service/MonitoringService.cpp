@@ -41,7 +41,6 @@ namespace WakeOnLanImpl {
         t = std::make_unique<std::thread>([this]() {
             time_t timestamp;
             bool timerSet;
-            int seq = 0;
             bool updated = false;
             std::vector<std::string> sleeping_participants;
             Message *msg;
@@ -74,7 +73,7 @@ namespace WakeOnLanImpl {
                         // currently in the table
                         if (participant.ip != config.getIpAddress()) {
                             sleeping_participants.push_back(participant.hostname);
-                            Message message = getSleepStatusRequest(seq);
+                            Message message = getSleepStatusRequest(1);
                             inetHandler->send(message, participant.ip);
                         }
 
@@ -83,11 +82,10 @@ namespace WakeOnLanImpl {
                         //           << participant.hostname << " @ " 
                         //           << participant.ip << std::endl;
                     }
-                    seq++;
                     timestamp = std::time(nullptr); // reset timer
                 }
                 msg = inetHandler->getFromMonitoringQueue();
-                if(msg) // if there is an answer from a participant 
+                if(msg && msg->msgSeqNum == 2) // if there is an answer from a participant 
                 {
                     // erase participant from sleeping_participants and puts
                     // it in awaken_participants
@@ -124,7 +122,6 @@ namespace WakeOnLanImpl {
             Message *msg;
             time_t timestamp;
             bool timerSet = false;
-            int seq;
             while(active)
             {
                 status = inetHandler->getGlobalStatus();
@@ -167,8 +164,7 @@ namespace WakeOnLanImpl {
                                     log->info("Participant has joined the group managed by IP={} MAC={}",
                                               msg->ip, msg->mac);
                                 }
-                                seq = msg->msgSeqNum;
-                                Message answer = getSleepStatusRequest(seq);
+                                Message answer = getSleepStatusRequest(2);
                                 inetHandler->send(answer, msg->ip);
                                 timestamp = std::time(nullptr); // reset timer
                                 // std::cout << "Got sleep status request. " << std::endl;
