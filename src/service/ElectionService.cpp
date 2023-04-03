@@ -112,6 +112,10 @@ namespace WakeOnLanImpl {
         }
         return HandlerType::Participant;
     }
+
+    bool ElectionService::isElectionOver() {
+        return !ongoingElection;
+    }
     
     HandlerType ElectionService::sendElectionMsgs(std::vector<Table::Participant> contenders)
     {

@@ -36,6 +36,8 @@ namespace WakeOnLanImpl {
          */
         HandlerType startElection();
 
+        bool isElectionOver();
+
         /**
          * Get results from elections started by another participant.         * 
          * @return HandlerType, new role as decided in the election or current role if no new elections.

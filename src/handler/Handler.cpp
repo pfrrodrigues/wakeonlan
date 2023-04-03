@@ -29,6 +29,8 @@ namespace WakeOnLanImpl {
                 case ManagerFailure:
                     // 1. run an election 
                     electionResult = electionService->startElection();
+                    while (!electionService->isElectionOver()){ }
+                    
                     // 2. notify services if there is a status change
                     if (electionResult != config.getHandlerType())
                     {
@@ -43,7 +45,6 @@ namespace WakeOnLanImpl {
                     break;
                 default:
                     electionResult = electionService->getNewElectionResult();
-                    
                     if (electionResult != config.getHandlerType())
                     {
                         config = networkHandler->changeHandlerType(electionResult);
