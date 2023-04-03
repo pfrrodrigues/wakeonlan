@@ -5,4 +5,4 @@ then
 	mkdir build
 fi
 cd build || exit
-cmake .. && make -j 2
+cmake .. && make -j 4
