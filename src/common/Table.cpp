@@ -54,7 +54,6 @@ namespace WakeOnLanImpl {
     }
 
     std::pair<uint32_t, std::vector<Table::Participant>> Table::update(const ParticipantStatus &status, const std::string &hostname) {
-        bool opSucceded = false;
         uint32_t updateSeqNo = 0;
         std::lock_guard<std::mutex> lk(tableMutex);
         auto it = data.find(hostname);
@@ -75,16 +74,21 @@ namespace WakeOnLanImpl {
         return std::make_pair(updateSeqNo, members);
     }
 
-    bool Table::remove(const std::string &hostname) {
-        bool returnCode = false;
+    std::pair<uint32_t, std::vector<Table::Participant>> Table::remove(const std::string &hostname) {
+        uint32_t updateSeqNo = 0;
         std::lock_guard<std::mutex> lk(tableMutex);
         if (data.count(hostname))
             if (data.erase(hostname)) {
-                returnCode = true;
                 updated = true;
+                seq++;
+                updateSeqNo = seq;
                 cv.notify_one();
             }
-        return returnCode;
+        std::vector<Table::Participant> members;
+        members.reserve(data.size());
+        for(auto& entry: data)
+            members.push_back(entry.second);
+        return std::make_pair(updateSeqNo, members);
     }
     
     std::vector<Table::Participant> Table::get_participants_interface() {

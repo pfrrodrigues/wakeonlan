@@ -195,13 +195,25 @@ namespace WakeOnLanImpl {
         {
             // make sure that you are in the table as manager
             if(p.mac == config.getMacAddress())  // using Mac address as unique identifier
-                table.update(Table::ParticipantStatus::Manager, config.getHostname());
+            {
+                auto ret = table.update(Table::ParticipantStatus::Manager, config.getHostname());
+                if(ret.first)
+                {
+                    inetHandler->multicast(ret.second, ret.first);
+                }
+            }
             // make sure that everyone else is in the table a participant
             else {
                 if(p.status == Table::ParticipantStatus::Manager)
+                {
                     // changing status to unknown because you can't know if you had to managers or
                     // if you are stepping up to substitute a fallen manager -- MonitoringService will decide
-                    table.update(Table::ParticipantStatus::Unknown, p.hostname);
+                    auto ret = table.update(Table::ParticipantStatus::Unknown, p.hostname);
+                    if(ret.first)
+                    {
+                        inetHandler->multicast(ret.second, ret.first);
+                    }
+                }
             }
         }
     }

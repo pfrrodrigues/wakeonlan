@@ -62,64 +62,7 @@ namespace WakeOnLanImpl {
                              /**
                               * Send multicast message
                               */
-                             log->info("Member {} have its status changed to SLEEPING", hostname);
-                             Message multicastMsg{};
-                             multicastMsg.type = Type::TableUpdate;
-                             multicastMsg.msgSeqNum = ret.first;
-                             bzero(multicastMsg.hostname, sizeof(multicastMsg.hostname));
-                             bzero(multicastMsg.ip, sizeof(multicastMsg.ip));
-                             bzero(multicastMsg.mac, sizeof(multicastMsg.mac));
-                             strncpy(multicastMsg.hostname, config.getHostname().c_str(), config.getHostname().size());
-                             strncpy(multicastMsg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
-                             strncpy(multicastMsg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
-
-                             size_t offset = 0;
-                             uint8_t noEntries = ret.second.size();
-                             char electedTimestamp[WAKEONLAN_FIELD_TIMESTAMP_SIZE];
-                             char host[WAKEONLAN_FIELD_HOSTNAME_SIZE];
-                             char ip[WAKEONLAN_FIELD_IP_SIZE];
-                             char mac[WAKEONLAN_FIELD_MAC_SIZE];
-
-                             memcpy(&multicastMsg.data[offset], &noEntries, sizeof(noEntries));
-                             offset += sizeof(noEntries);
-
-                             /* Inserts table entries on the message */
-                             for (auto & member : ret.second) {
-                                 bzero(electedTimestamp, WAKEONLAN_FIELD_TIMESTAMP_SIZE);
-                                 bzero(host, WAKEONLAN_FIELD_HOSTNAME_SIZE);
-                                 bzero(ip, WAKEONLAN_FIELD_IP_SIZE);
-                                 bzero(mac, WAKEONLAN_FIELD_MAC_SIZE);
-
-                                 memcpy(electedTimestamp, member.electedTimestamp.c_str(), member.electedTimestamp.size());
-                                 memcpy(host, member.hostname.c_str(), member.hostname.size());
-                                 memcpy(ip, member.ip.c_str(), member.ip.size());
-                                 memcpy(mac, member.mac.c_str(), member.mac.size());
-
-                                 memcpy(&multicastMsg.data[offset], electedTimestamp, WAKEONLAN_FIELD_TIMESTAMP_SIZE);
-                                 offset += WAKEONLAN_FIELD_TIMESTAMP_SIZE;
-
-                                 memcpy(&multicastMsg.data[offset], host, WAKEONLAN_FIELD_HOSTNAME_SIZE);
-                                 offset += WAKEONLAN_FIELD_HOSTNAME_SIZE;
-
-                                 memcpy(&multicastMsg.data[offset], ip, WAKEONLAN_FIELD_IP_SIZE);
-                                 offset += WAKEONLAN_FIELD_IP_SIZE;
-
-                                 memcpy(&multicastMsg.data[offset], mac, WAKEONLAN_FIELD_MAC_SIZE);
-                                 offset += WAKEONLAN_FIELD_MAC_SIZE;
-
-                                 auto status = static_cast<uint8_t>(member.status);
-                                 memcpy(&multicastMsg.data[offset], &status, WAKEONLAN_FIELD_STATUS_SIZE);
-                                 offset += WAKEONLAN_FIELD_STATUS_SIZE;
-                             }
-
-                             log->info("Sending a MULTICAST message to the group [seq={} no_entries={}]", multicastMsg.msgSeqNum, noEntries);
-                             for (auto & member : ret.second) {
-                                 if (member.status != Table::ParticipantStatus::Manager
-                                     && member.status != Table::ParticipantStatus::Unknown) {
-                                     inetHandler->send(multicastMsg, member.ip);
-                                     log->info("Sent a TableUpdate UNICAST message to {}", member.ip);
-                                 }
-                             }
+                             inetHandler->multicast(ret.second, ret.first);
                          }
                     }
 
@@ -158,66 +101,7 @@ namespace WakeOnLanImpl {
                         * Send multicast message
                         */
                         log->info("Member {} have its status changed to AWAKEN", hostname);
-                        sleep(1);
-                        Message multicastMsg{};
-                        multicastMsg.type = Type::TableUpdate;
-                        multicastMsg.msgSeqNum = ret.first;
-                        bzero(multicastMsg.hostname, sizeof(multicastMsg.hostname));
-                        bzero(multicastMsg.ip, sizeof(multicastMsg.ip));
-                        bzero(multicastMsg.mac, sizeof(multicastMsg.mac));
-                        strncpy(multicastMsg.hostname, config.getHostname().c_str(), config.getHostname().size());
-                        strncpy(multicastMsg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
-                        strncpy(multicastMsg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
-
-                        size_t offset = 0;
-                        uint8_t noEntries = ret.second.size();
-                        char electedTimestamp[WAKEONLAN_FIELD_TIMESTAMP_SIZE];
-                        char host[WAKEONLAN_FIELD_HOSTNAME_SIZE];
-                        char ip[WAKEONLAN_FIELD_IP_SIZE];
-                        char mac[WAKEONLAN_FIELD_MAC_SIZE];
-
-                        memcpy(&multicastMsg.data[offset], &noEntries, sizeof(noEntries));
-                        offset += sizeof(noEntries);
-
-                        // messages
-                        for (auto & member : ret.second) {
-                            bzero(electedTimestamp, WAKEONLAN_FIELD_TIMESTAMP_SIZE);
-                            bzero(host, WAKEONLAN_FIELD_HOSTNAME_SIZE);
-                            bzero(ip, WAKEONLAN_FIELD_IP_SIZE);
-                            bzero(mac, WAKEONLAN_FIELD_MAC_SIZE);
-
-                            memcpy(electedTimestamp, member.electedTimestamp.c_str(), member.electedTimestamp.size());
-                            memcpy(host, member.hostname.c_str(), member.hostname.size());
-                            memcpy(ip, member.ip.c_str(), member.ip.size());
-                            memcpy(mac, member.mac.c_str(), member.mac.size());
-
-
-                            memcpy(&multicastMsg.data[offset], electedTimestamp, WAKEONLAN_FIELD_TIMESTAMP_SIZE);
-                            offset += WAKEONLAN_FIELD_TIMESTAMP_SIZE;
-
-                            memcpy(&multicastMsg.data[offset], host, WAKEONLAN_FIELD_HOSTNAME_SIZE);
-                            offset += WAKEONLAN_FIELD_HOSTNAME_SIZE;
-
-                            memcpy(&multicastMsg.data[offset], ip, WAKEONLAN_FIELD_IP_SIZE);
-                            offset += WAKEONLAN_FIELD_IP_SIZE;
-
-                            memcpy(&multicastMsg.data[offset], mac, WAKEONLAN_FIELD_MAC_SIZE);
-                            offset += WAKEONLAN_FIELD_MAC_SIZE;
-
-                            auto status = static_cast<uint8_t>(member.status);
-                            memcpy(&multicastMsg.data[offset], &status, WAKEONLAN_FIELD_STATUS_SIZE);
-                            offset += WAKEONLAN_FIELD_STATUS_SIZE;
-                        }
-
-                        log->info("Sending a MULTICAST message to the group [seq={} no_entries={}]", multicastMsg.msgSeqNum, noEntries);
-                        for (auto & member : ret.second) {
-                            if (member.status != Table::ParticipantStatus::Manager
-                                && member.status != Table::ParticipantStatus::Unknown) {
-                                inetHandler->send(multicastMsg, member.ip);
-                                log->info("Sent a TableUpdate UNICAST message to {}", member.ip);
-                            }
-                        }
-
+                        inetHandler->multicast(ret.second, ret.first);
                         // std::cout << "Manager got answer from "
                         //           << msg->hostname << " @ "
                         //           << msg->ip << std::endl;

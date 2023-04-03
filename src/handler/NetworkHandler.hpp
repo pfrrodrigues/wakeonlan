@@ -8,6 +8,7 @@
 #include <../src/common/UdpSocket.hpp>
 #include <../include/Config.hpp>
 #include <spdlog/spdlog.h>
+#include <../src/common/Table.hpp>
 
 using namespace WakeOnLan;
 
@@ -59,6 +60,8 @@ namespace WakeOnLanImpl {
         * @returns A bool indicating the message was sent.
         */
         bool send(const Message &message, const std::string &ip);
+
+        bool multicast(std::vector<Table::Participant> group, uint32_t seqNo);
 
         /**
          * Gets the older Message from the Discovery service queue. Messages of type SleepServiceDiscovery and

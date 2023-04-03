@@ -87,7 +87,7 @@ namespace WakeOnLanImpl {
         * @param hostname The hostname of the participant to be removed.
         * @return A bool indicating the participant was deleted of the table with success.
         */
-        bool remove(const std::string &hostname);
+        std::pair<uint32_t, std::vector<Table::Participant>> remove(const std::string &hostname);
 
         /**
          * Gets all participants registered in the table.
