@@ -26,7 +26,7 @@ namespace WakeOnLanImpl {
         std::cout << "\033[s"   // saves cursor position
                   << "\033[1A"  // moves cursor 1 line up
                   << "\033[2K"   // clears line 
-                  << "This machine is now a " << ((config.getHandlerType() == HandlerType::Manager) ? "manager" : "participant")
+                  << "This machine is now a " << ((config.getHandlerType() == HandlerType::Manager) ? "MANAGER" : "PARTICIPANT")
                   << std::endl 
                   << "\033[u";  // returns to previous position 
     }
@@ -42,12 +42,18 @@ namespace WakeOnLanImpl {
         threads.push_back(cmd_th);
 
         std::cout << "\033[2J"     // clears terminal and moves cursor to (0,0)
-                  << "\033[0;0f";  // set cursor position to line 3, col 0
-        std::flush(std::cout);
-
+                  << "\033[0;0f";  // set cursor position to line 0, col 0
+        std::cout << "\033[36m"
+                  << "░██╗░░░░░░░██╗░█████╗░██╗░░██╗███████╗░░░░░░░█████╗░███╗░░██╗░░░░░░██╗░░░░░░█████╗░███╗░░██╗\n"
+                  << "░██║░░██╗░░██║██╔══██╗██║░██╔╝██╔════╝░░░░░░██╔══██╗████╗░██║░░░░░░██║░░░░░██╔══██╗████╗░██║\n"
+                  << "░╚██╗████╗██╔╝███████║█████═╝░█████╗░░█████╗██║░░██║██╔██╗██║█████╗██║░░░░░███████║██╔██╗██║\n"
+                  << "░░████╔═████║░██╔══██║██╔═██╗░██╔══╝░░╚════╝██║░░██║██║╚████║╚════╝██║░░░░░██╔══██║██║╚████║\n"
+                  << "░░╚██╔╝░╚██╔╝░██║░░██║██║░╚██╗███████╗░░░░░░╚█████╔╝██║░╚███║░░░░░░███████╗██║░░██║██║░╚███║\n"
+                  << "░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚══════╝░░░░░░░╚════╝░╚═╝░░╚══╝░░░░░░╚══════╝╚═╝░░╚═╝╚═╝░░╚══╝\n"
+                  << "\033[0m" << std::endl;
         int ret;
-        ret = pthread_create(&threads[0], NULL, &startDisplayTable, this);
         ret = pthread_create(&threads[1], NULL, &startCommandListener, this);
+        ret = pthread_create(&threads[0], NULL, &startDisplayTable, this);
     }
 
     void * InterfaceService::startDisplayTable(void * param)
@@ -69,7 +75,7 @@ namespace WakeOnLanImpl {
 
     void InterfaceService::runDisplayTable()
     {
-        std::cout << "\033[2J"; // clears terminal and moves cursor to (0,0)
+        // std::cout << "\033[2J"; // clears terminal and moves cursor to (0,0)
         // std::cout << "\n>> ";
         std::flush(std::cout);
         int newNumParticipants;
@@ -80,7 +86,7 @@ namespace WakeOnLanImpl {
 
             std::cout <<"\033[?25l"           // hides cursor
                       <<"\033[s"              // saves cursor position
-                      <<"\033[" << 3 << ";0f";          // set cursor position to line 3, col 0
+                      <<"\033[" << 10 << ";0f";          // set cursor position to line 9, col 0
             std::flush(std::cout);
             initializeDisplayTable();
             for(int i=0; i<numParticipants; i++)
@@ -106,9 +112,9 @@ namespace WakeOnLanImpl {
                     default:
                         break;
                 }
-                std::string you = config.getIpAddress() == lastSyncParticipants[i].hostname ? " (you)" : "";
+                std::string you = config.getIpAddress() == lastSyncParticipants[i].ip ? " (you)" : "";
                 std::cout <<"\033[K";
-                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].hostname << you << "|";
+                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].hostname + you << "|";
                 std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].ip << "|";
                 std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].mac << "|";
                 std::cout << std::left << std::setw(10) << std::setfill(' ') << status << "\n";
