@@ -51,23 +51,21 @@ namespace WakeOnLanImpl {
                     break;
                     case Type::ElectionServiceElection:
                     {
+                        log->info("Got election message from IP {}.", m->ip);
+                        // answer election message  
+                        Message answer{};
+                        answer.type = WakeOnLanImpl::Type::ElectionServiceAnswer;
+                        bzero(answer.hostname, sizeof(answer.hostname));
+                        bzero(answer.ip, sizeof(answer.ip));
+                        bzero(answer.mac, sizeof(answer.mac));
+                        strncpy(answer.hostname, config.getHostname().c_str(), config.getHostname().size());
+                        strncpy(answer.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
+                        strncpy(answer.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
+                        inetHandler->send(answer, m->ip);
                         if(!ongoingElection)
                         {
-                            log->info("Got election message from IP {}.", m->ip);
-                            // answer election message  
-                            Message answer{};
-                            answer.type = WakeOnLanImpl::Type::ElectionServiceAnswer;
-                            bzero(answer.hostname, sizeof(answer.hostname));
-                            bzero(answer.ip, sizeof(answer.ip));
-                            bzero(answer.mac, sizeof(answer.mac));
-                            strncpy(answer.hostname, config.getHostname().c_str(), config.getHostname().size());
-                            strncpy(answer.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
-                            strncpy(answer.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
-                            inetHandler->send(answer, m->ip);
-                            // send election messages to possible contenders/declare you won
                             startElection();
                         }
-                        // if there is an ongoing election, ignore message
                     }
                     break;
                     case Type::ElectionServiceAnswer:
