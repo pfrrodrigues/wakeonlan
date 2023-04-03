@@ -7,41 +7,31 @@
 namespace WakeOnLanImpl {
     // InterfaceService
     InterfaceService::InterfaceService(Table &table, std::shared_ptr<NetworkHandler> netHandler) 
-        : participantTable(table)
+        : participantTable(table),
+          config(netHandler->getDeviceConfig())
     {
-        networkHandler = netHandler;
+        inetHandler = netHandler;
     }
 
     void InterfaceService::stop()
     {
         log->info("Stop Interface service");
+        if(config.getHandlerType() == HandlerType::Participant)
+            sendExitMsg();
         keepRunning = false;
     }
 
-    void InterfaceService::run() {}
-
-    std::vector<std::string> InterfaceService::splitCmd(std::string cmd)
-    {
-        std::string word;
-        std::vector<std::string> words;
-        int pos = cmd.find(' '), start = 0;
-        while (pos != std::string::npos)
-        {   
-            word = cmd.substr(start, pos - start);
-            if (word.size() > 1)
-                words.push_back(word);
-            start = pos + 1;
-            pos = cmd.find(' ', start);
-        }
-        word = cmd.substr(start);
-        if (word.size() > 1)
-            words.push_back(word);
-        return words;
+    void InterfaceService::notifyRoleChange() {
+        config = inetHandler->getDeviceConfig();
+        std::cout << "\033[s"   // saves cursor position
+                  << "\033[1A"  // moves cursor 1 line up
+                  << "\033[2K"   // clears line 
+                  << "This machine is now a " << ((config.getHandlerType() == HandlerType::Manager) ? "MANAGER" : "PARTICIPANT")
+                  << std::endl 
+                  << "\033[u";  // returns to previous position 
     }
 
-    // ManagerInterfaceService
-
-    void ManagerInterfaceService::run()
+    void InterfaceService::run()
     {
         keepRunning = true;
         numParticipants = 0;
@@ -52,22 +42,28 @@ namespace WakeOnLanImpl {
         threads.push_back(cmd_th);
 
         std::cout << "\033[2J"     // clears terminal and moves cursor to (0,0)
-                  << "\033[1;0f";  // set cursor position to line 3, col 0
-        std::flush(std::cout);
-
+                  << "\033[0;0f";  // set cursor position to line 0, col 0
+        std::cout << "\033[36m"
+                  << "░██╗░░░░░░░██╗░█████╗░██╗░░██╗███████╗░░░░░░░█████╗░███╗░░██╗░░░░░░██╗░░░░░░█████╗░███╗░░██╗\n"
+                  << "░██║░░██╗░░██║██╔══██╗██║░██╔╝██╔════╝░░░░░░██╔══██╗████╗░██║░░░░░░██║░░░░░██╔══██╗████╗░██║\n"
+                  << "░╚██╗████╗██╔╝███████║█████═╝░█████╗░░█████╗██║░░██║██╔██╗██║█████╗██║░░░░░███████║██╔██╗██║\n"
+                  << "░░████╔═████║░██╔══██║██╔═██╗░██╔══╝░░╚════╝██║░░██║██║╚████║╚════╝██║░░░░░██╔══██║██║╚████║\n"
+                  << "░░╚██╔╝░╚██╔╝░██║░░██║██║░╚██╗███████╗░░░░░░╚█████╔╝██║░╚███║░░░░░░███████╗██║░░██║██║░╚███║\n"
+                  << "░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝╚═╝░░╚═╝╚══════╝░░░░░░░╚════╝░╚═╝░░╚══╝░░░░░░╚══════╝╚═╝░░╚═╝╚═╝░░╚══╝\n"
+                  << "\033[0m" << std::endl;
         int ret;
-        ret = pthread_create(&threads[0], NULL, &startDisplayTable, this);
         ret = pthread_create(&threads[1], NULL, &startCommandListener, this);
+        ret = pthread_create(&threads[0], NULL, &startDisplayTable, this);
     }
 
-    void * ManagerInterfaceService::startDisplayTable(void * param)
+    void * InterfaceService::startDisplayTable(void * param)
     {
-        ManagerInterfaceService *obj = (ManagerInterfaceService *) param;
+        InterfaceService *obj = (InterfaceService *) param;
         obj->runDisplayTable();
         return NULL;
     }
 
-    void ManagerInterfaceService::initializeDisplayTable()
+    void InterfaceService::initializeDisplayTable()
     {
         // print header
         std::cout << "\033[30;47m" << std::left << std::setw(20) << std::setfill(' ') << "HOSTNAME" << "\033[0m ";
@@ -77,9 +73,9 @@ namespace WakeOnLanImpl {
         return;
     }
 
-    void ManagerInterfaceService::runDisplayTable()
+    void InterfaceService::runDisplayTable()
     {
-        std::cout << "\033[2J"; // clears terminal and moves cursor to (0,0)
+        // std::cout << "\033[2J"; // clears terminal and moves cursor to (0,0)
         // std::cout << "\n>> ";
         std::flush(std::cout);
         int newNumParticipants;
@@ -90,7 +86,7 @@ namespace WakeOnLanImpl {
 
             std::cout <<"\033[?25l"           // hides cursor
                       <<"\033[s"              // saves cursor position
-                      <<"\033[" << 3 << ";0f";          // set cursor position to line 3, col 0
+                      <<"\033[" << 10 << ";0f";          // set cursor position to line 9, col 0
             std::flush(std::cout);
             initializeDisplayTable();
             for(int i=0; i<numParticipants; i++)
@@ -110,11 +106,15 @@ namespace WakeOnLanImpl {
                     case Table::ParticipantStatus::Unknown:
                         status = "\033[93mUNKNOWN\033[0m";
                         break;
+                    case Table::ParticipantStatus::Manager:
+                        status = "\033[94mMANAGER\033[0m";
+                        break;
                     default:
                         break;
                 }
+                std::string you = config.getIpAddress() == lastSyncParticipants[i].ip ? " (you)" : "";
                 std::cout <<"\033[K";
-                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].hostname << "|";
+                std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].hostname + you << "|";
                 std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].ip << "|";
                 std::cout << std::left << std::setw(20) << std::setfill(' ') << lastSyncParticipants[i].mac << "|";
                 std::cout << std::left << std::setw(10) << std::setfill(' ') << status << "\n";
@@ -134,15 +134,16 @@ namespace WakeOnLanImpl {
         }
     }
 
-    void * ManagerInterfaceService::startCommandListener(void * param)
+    void * InterfaceService::startCommandListener(void * param)
     {
-        ManagerInterfaceService *obj = (ManagerInterfaceService *) param;
+        InterfaceService *obj = (InterfaceService *) param;
         obj->runCommandListener();
         return NULL;
     }
 
-    void ManagerInterfaceService::runCommandListener()
+    void InterfaceService::runCommandListener()
     {
+        std::cout << "Starting as participant. Available commands: EXIT" << std::endl;
         std::string cmd, response;
         while(keepRunning)
         {
@@ -152,7 +153,16 @@ namespace WakeOnLanImpl {
                 kill(getpid(), SIGINT);
 		        return;
             }
-            response = parseInput(cmd);
+            switch (config.getHandlerType())
+            {
+            case HandlerType::Manager:
+                response = parseInputManager(cmd);
+                break;
+            case HandlerType::Participant:
+                response = parseInputParticipant(cmd);
+            default:
+                break;
+            }
             std::cout << "\033[2A"  // moves cursor 2 lines up
                       << "\033[K"   // clears line 
                       << response   
@@ -162,7 +172,7 @@ namespace WakeOnLanImpl {
         }
     }
 
-    std::string ManagerInterfaceService::parseInput(std::string cmd)
+    std::string InterfaceService::parseInputManager(std::string cmd)
     {
         std::vector<std::string> args = splitCmd(cmd);            
         if (args.size() == 0)
@@ -174,11 +184,11 @@ namespace WakeOnLanImpl {
             std::string response = processWakeupCmd(args[1]);
             return response;
         }
-        return "Available commands: WAKEUP <hostname>";
+        return "Available commands for MANAGER: WAKEUP <hostname>";
     }
 
     
-    std::string ManagerInterfaceService::processWakeupCmd(std::string hostname)
+    std::string InterfaceService::processWakeupCmd(std::string hostname)
     {
 
         std::string mac;
@@ -195,74 +205,11 @@ namespace WakeOnLanImpl {
         if (!hostnameFound)
             return hostname + " not found.";
 
-        networkHandler->wakeUp(mac); 
+        inetHandler->wakeUp(mac); 
         return "Waking up " + hostname + " @ " + mac + ".";
     }
 
-    // ParticipantInterfaceService
-
-    void ParticipantInterfaceService::run()
-    {
-        keepRunning = true;
-        log = spdlog::get("wakeonlan-api");
-        log->info("Start Interface service");
-        pthread_t cmd_th;
-        threads.push_back(cmd_th);
-
-        int ret;
-        ret = pthread_create(&threads[0], NULL, &startCommandListener, this);
-    }
-
-    void ParticipantInterfaceService::stop()
-    {
-        // send exit message
-        sendExitMsg();
-        // normal stop 
-        InterfaceService::stop();
-    }
-
-    void * ParticipantInterfaceService::startCommandListener(void * param)
-    {
-        ParticipantInterfaceService *obj = (ParticipantInterfaceService *) param;
-        obj->runCommandListener();
-        return NULL;
-    }
-
-    void ParticipantInterfaceService::runCommandListener()
-    {
-        // wait connection
-        std::cout << "Waiting connection to manager...";
-        std::flush(std::cout);
-        std::vector<Table::Participant> ms = participantTable.get_participants_interface();
-        if(ms.size() != 0)
-            std::cout << "Something went wrong..";
-        manager = ms[0];
-
-        // receive input
-        std::cout << "\033[2J" // clears terminal and moves cursor to (0,0)
-                  << "You are connected."
-                  << std::endl;         
-        std::string cmd, response;
-        while(keepRunning)
-        {
-            std::cout << ">> ";
-            if(!std::getline(std::cin, cmd))
-	        {
-                kill(getpid(), SIGINT);
-                return;
-            }
-            response = parseInput(cmd);
-            std::cout << "\033[2A"  // moves cursor 2 lines up
-                      << "\033[K"   // clears line 
-                      << response   
-                      << std::endl 
-                      << "\033[K";  // clears previous input 
-            std::flush(std::cout);
-        }
-        processExitCmd();
-    }
-
-    std::string ParticipantInterfaceService::parseInput(std::string cmd)
+    std::string InterfaceService::parseInputParticipant(std::string cmd)
     {
         std::vector<std::string> args = splitCmd(cmd);            
         if (args.size() == 0)
@@ -274,27 +221,77 @@ namespace WakeOnLanImpl {
             std::string response = processExitCmd();
             return response;
         }
-        return "Available commands: EXIT";
+        return "Available commands as PARTICIPANT: EXIT";
     }
 
-    std::string ParticipantInterfaceService::processExitCmd()
+    std::string InterfaceService::processExitCmd()
     {
         kill(getpid(), SIGINT);
-        return "Sending exit message to manager " + manager.hostname + " @ " + manager.ip;  
-
+        return "Sending exit message to manager @ " + inetHandler->getManagerIp();  
     }
 
-    void ParticipantInterfaceService::sendExitMsg()
+    void InterfaceService::sendExitMsg()
     {
-        Config selfInfo = networkHandler->getDeviceConfig();
         Message exit_msg;
         exit_msg.type = Type::SleepServiceExit;
         bzero(exit_msg.hostname, sizeof(exit_msg.hostname));
         bzero(exit_msg.ip, sizeof(exit_msg.ip));
         bzero(exit_msg.mac, sizeof(exit_msg.mac));
-        strncpy(exit_msg.hostname, selfInfo.getHostname().c_str(), selfInfo.getHostname().size());
-        strncpy(exit_msg.ip, selfInfo.getIpAddress().c_str(), selfInfo.getIpAddress().size());
-        strncpy(exit_msg.mac, selfInfo.getMacAddress().c_str(), selfInfo.getMacAddress().size());
-        networkHandler->send(exit_msg, manager.ip);     
+        strncpy(exit_msg.hostname, config.getHostname().c_str(), config.getHostname().size());
+        strncpy(exit_msg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
+        strncpy(exit_msg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
+        inetHandler->send(exit_msg, inetHandler->getManagerIp());     
+    }
+    
+    std::vector<std::string> InterfaceService::splitCmd(std::string cmd)
+    {
+        std::string word;
+        std::vector<std::string> words;
+        int pos = cmd.find(' '), start = 0;
+        while (pos != std::string::npos)
+        {   
+            word = cmd.substr(start, pos - start);
+            if (word.size() > 1)
+                words.push_back(word);
+            start = pos + 1;
+            pos = cmd.find(' ', start);
+        }
+        word = cmd.substr(start);
+        if (word.size() > 1)
+            words.push_back(word);
+        return words;
     }
 }
+    // void ParticipantInterfaceService::runCommandListener()
+    // {
+    //     // wait connection
+    //     std::cout << "Waiting connection to manager...";
+    //     std::flush(std::cout);
+    //     std::vector<Table::Participant> ms = participantTable.get_participants_interface();
+    //     if(ms.size() != 0)
+    //         std::cout << "Something went wrong..";
+    //     lastSyncManager = ms[0];
+
+    //     // receive input
+    //     std::cout << "\033[2J" // clears terminal and moves cursor to (0,0)
+    //               << "You are connected."
+    //               << std::endl;         
+    //     std::string cmd, response;
+    //     while(keepRunning)
+    //     {
+    //         std::cout << ">> ";
+    //         if(!std::getline(std::cin, cmd))
+	//         {
+    //             kill(getpid(), SIGINT);
+    //             return;
+    //         }
+    //         response = parseInput(cmd);
+    //         std::cout << "\033[2A"  // moves cursor 2 lines up
+    //                   << "\033[K"   // clears line 
+    //                   << response   
+    //                   << std::endl 
+    //                   << "\033[K";  // clears previous input 
+    //         std::flush(std::cout);
+    //     }
+    //     processExitCmd();
+    // }

@@ -104,6 +104,13 @@ namespace WakeOnLanImpl {
          * @return A vector of registered participants.
          */
         std::vector<Participant> get_participants_interface();
+
+        /**
+         * Gets the current manager as in the last update of the present table.
+         * @return The Participant object that is the current Manager if succesfull,
+         * an empty Participant if otherwise.
+         */
+        Participant get_manager();
     private:
         Table() = default;
 

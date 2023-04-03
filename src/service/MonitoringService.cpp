@@ -16,6 +16,8 @@ namespace WakeOnLanImpl {
     }
 
     void MonitoringService::run() {
+        this->log = spdlog::get("wakeonlan-api");
+        log->info("Start Monitoring service");
         Config config = inetHandler->getDeviceConfig();
         switch (config.getHandlerType())
         {
@@ -34,11 +36,9 @@ namespace WakeOnLanImpl {
         if (t)
             t->join();
 
+        log->info("Monitoring service operating as Manager.");
         active = true;
-        this->log = spdlog::get("wakeonlan-api");
-
         t = std::make_unique<std::thread>([this]() {
-            log->info("Start Monitoring service");
             time_t timestamp;
             bool timerSet;
             int seq = 0;
@@ -232,11 +232,10 @@ namespace WakeOnLanImpl {
         if (t)
             t->join();
 
-        active = true;
-        this->log = spdlog::get("wakeonlan-api");
+        log->info("Monitoring service operating as Participant.");
 
+        active = true;
         t = std::make_unique<std::thread>([this]() {
-            log->info("Start Monitoring service");
             ServiceGlobalStatus status;
             Message *msg;
             time_t timestamp;
@@ -256,7 +255,7 @@ namespace WakeOnLanImpl {
                         timestamp = std::time(nullptr);
                         timerSet = true;
                     }
-                    if(timestamp + 35 < std::time(nullptr) && status == ServiceGlobalStatus::Syncing)
+                    if(timestamp + 17 < std::time(nullptr))
                     {
                         inetHandler->changeStatus(ServiceGlobalStatus::WaitingForSync);
                         timerSet = false;
@@ -265,7 +264,7 @@ namespace WakeOnLanImpl {
                         break;
                     }
                     msg = inetHandler->getFromMonitoringQueue();
-                    if(msg)
+                    if(msg && msg->ip == inetHandler->getManagerIp())
                     {
                         switch (msg->type) {
                             case Type::SleepStatusRequest:
@@ -375,5 +374,20 @@ namespace WakeOnLanImpl {
         log->info("Stop Monitoring service");
     }
 
+    void MonitoringService::notifyRoleChange() {
+        // stops active thread
+        active = false;
+        auto config = inetHandler->getDeviceConfig();
+        switch (config.getHandlerType())
+        {
+        case HandlerType::Manager:
+            runAsManager();
+            break;
+        case HandlerType::Participant:
+            runAsParticipant();
+        default:
+            break;
+        }
+    }
 
 } // namespace WakeOnLanImpl

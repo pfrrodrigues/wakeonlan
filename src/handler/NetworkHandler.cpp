@@ -44,6 +44,14 @@ namespace WakeOnLanImpl {
                             monitoringQueue.push(response);
                         }
                         break;
+                        case Type::ElectionServiceElection:
+                        case Type::ElectionServiceAnswer:
+                        case Type::ElectionServiceCoordinator:
+                        {
+                            std::lock_guard<std::mutex> lk(inetMutex);
+                            electionQueue.push(response);
+                        }
+                        break;
                         default:
                             log->warn("Network handler (internal): received a message with unknown type");
                             break;
@@ -104,6 +112,24 @@ namespace WakeOnLanImpl {
         }
     }
 
+    Message* NetworkHandler::getFromElectionQueue() {
+        std::lock_guard<std::mutex> lk(inetMutex);
+        static bool free = false;
+        if (free) {
+            electionQueue.pop();
+        }
+
+        if (!electionQueue.empty()) {
+            Message * k = &electionQueue.front();
+            free = true;
+            return k;
+        }
+        else {
+            free = false;
+            return nullptr;
+        }
+    }
+
     bool NetworkHandler::wakeUp(const std::string &mac) {
         std::lock_guard<std::mutex> lk(inetMutex);
         UdpSocket socket(BROADCAST_ADDRESS, WON_PORT);
@@ -151,10 +177,15 @@ namespace WakeOnLanImpl {
                     return "Synchronized";
                 case Unknown:
                     return "Unknown";
-                default:
-                    break;
+                case ManagerFailure:
+                    return "ManagerFailure";
             }
         }());
+    }
+
+    Config NetworkHandler::changeHandlerType(const HandlerType &ht) {
+        config.setHandlerType(ht);
+        return config;
     }
 
     const ServiceGlobalStatus& NetworkHandler::getGlobalStatus() {
@@ -163,6 +194,10 @@ namespace WakeOnLanImpl {
     }
 
     const Config &NetworkHandler::getDeviceConfig() { return config; }
+
+    void NetworkHandler::setManagerIp(std::string ip) {managerIp = ip;}
+
+    std::string NetworkHandler::getManagerIp() {return managerIp;}
 
     void NetworkHandler::stop() {
         active = false;

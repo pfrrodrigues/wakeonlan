@@ -21,7 +21,8 @@ namespace WakeOnLanImpl {
         WaitingForSync = 0,     ///< Indicates a SleepServiceDiscovery request was not received yet.
         Syncing = 1,            ///< Indicates a SleepServiceDiscovery request was received and a response to that was sent.
         Synchronized = 2,       ///< Indicates a SleepStatusRequest was receive. At this point, a participant has sure the manager add it on the group table.
-        Unknown = 3             ///< Indicates the initial state of the services.
+        Unknown = 3,            ///< Indicates the initial state of the services.
+        ManagerFailure = 4      ///< Indicates that a service has detected a failure in the Manager. 
     };
 
     /**
@@ -82,6 +83,17 @@ namespace WakeOnLanImpl {
         Message* getFromMonitoringQueue();
 
         /**
+         * Gets the older Message from the Election service queue. Messages of type ElectionService*
+         * received by the handler are placed on a dedicated queue and can be gotten through this
+         * function. Every message returned by the function is removed from the queue, so reading from the queue
+         * is a unitary operation on the perspective of the specific message being recovered. In case of the queue
+         * is empty a nullptr is returned, indicating there are not messages in the queue.
+         *
+         * @returns a pointer to a Message received by the handler and designated to the Election service.
+         */
+        Message* getFromElectionQueue();
+
+        /**
          * Sends a WOL packet to a target host.
          * @param mac A MAC address in string format.
          * @returns A bool indicating the WOL packet was sent.
@@ -101,10 +113,29 @@ namespace WakeOnLanImpl {
         void changeStatus(const ServiceGlobalStatus &gs);
 
         /**
+         * Updates handler type 
+         * @returns New Config for the system.
+         */
+        Config changeHandlerType(const HandlerType &ht);
+
+        /**
          * Gets the global status.
          * @returns A const ServiceGlobalStatus reference.
          */
         const ServiceGlobalStatus& getGlobalStatus();
+
+        /**
+         * Set the latest manager's IP address
+         * @param ip , string with the IP address. 
+         */
+        void setManagerIp(std::string ip);
+
+        /**
+         * Get the current manager's IP address or 
+         * an empty string if thre's no manager set
+         * @return std::string
+         */
+        std::string getManagerIp();
 
         /**
          * Stops the Network handler.
@@ -116,10 +147,12 @@ namespace WakeOnLanImpl {
         std::mutex inetMutex;                   ///< The mutex for controlling internal issues.
         std::queue<Message> discoveryQueue;     ///< The queue buffering messages designated to the Discovery service.
         std::queue<Message> monitoringQueue;    ///< The queue buffering messages designated to the Monitoring service.
+        std::queue<Message> electionQueue;      ///< The queue buffering messages designated to the Election service.
         uint32_t  port;                         ///< The port the handler service is running on.
         Config config;                          ///< The API configuration.
         ServiceGlobalStatus globalStatus;       ///< The services global status.
         std::mutex gsMutex;                     ///< The mutex used to handle global status access.
+        std::string managerIp;                  ///< The IP address of the current manager.
         std::shared_ptr<spdlog::logger> log;    ///< The Network handler logger.
         bool active;                            ///< The bool indicating whether service is active or not.
     };

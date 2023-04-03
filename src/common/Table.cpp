@@ -104,4 +104,22 @@ namespace WakeOnLanImpl {
             participants.push_back(entry.second);
         return participants;
     }
+
+    Table::Participant Table::get_manager()
+    {
+        Participant empty_participant;
+        empty_participant.status = ParticipantStatus::Unknown;
+
+        if (data.empty())
+            return empty_participant;
+
+        std::unique_lock<std::mutex> lk(tableMutex);
+        for(auto& entry: data)
+            if(entry.second.status == ParticipantStatus::Manager)
+                return entry.second;
+        
+        // if couldn't find manager
+        return empty_participant;
+    }
+
 } // namespace WakeOnLanImpl

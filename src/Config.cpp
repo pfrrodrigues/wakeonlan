@@ -71,5 +71,4 @@ namespace WakeOnLan {
     std::string Config::getMacAddress() const { return mac; }
 
     HandlerType Config::getHandlerType() const { return handlerType; }
-
 }

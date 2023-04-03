@@ -34,6 +34,11 @@ namespace WakeOnLanImpl {
          * Stops the Discovery service.
          */
         void stop();
+
+        /**
+         * Indicate to the service that there has been a change in it's role 
+         */
+        void notifyRoleChange();
     private:
         /**
          * Runs the Discovery service associated to the Manager instance.

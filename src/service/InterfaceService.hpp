@@ -15,9 +15,9 @@ namespace WakeOnLanImpl {
         /**
          * InterfaceService constructor.
          * @param table The singleton table used to store the manager information or the participants information.
-         * @param networkHandler The unique Network handler.
+         * @param inetHandler The unique Network handler.
          */
-        InterfaceService(Table &table, std::shared_ptr<NetworkHandler> networkHandler);
+        InterfaceService(Table &table, std::shared_ptr<NetworkHandler> inetHandler);
 
         /**
          * Interface destructor.
@@ -26,14 +26,18 @@ namespace WakeOnLanImpl {
         /**
         * Runs the Interface service.
         */
-        virtual void run();
+        void run();
 
         /**
          * Stops the Interface service.
          */
         void stop();
 
-    protected:
+        /**
+         * Indicate to the service that there has been a change in it's role 
+         */
+        void notifyRoleChange();
+    private:
         /**
          * Splits the user command.
          * @param cmd The user command.
@@ -41,67 +45,30 @@ namespace WakeOnLanImpl {
          */
         std::vector<std::string> splitCmd(std::string cmd);
 
-        std::shared_ptr<spdlog::logger> log;            ///< The InterfaceService logger.
-        std::vector<pthread_t> threads;                 ///< The vector of the dedicated threads.
-        Table &participantTable;                        ///< The singleton table.
-        std::shared_ptr<NetworkHandler> networkHandler; ///< The unique network handler.
-        bool keepRunning;                               /// Indicates the services must keep running.
-    };
-
-    class ManagerInterfaceService : public InterfaceService
-    {
-        #define DISPLAY_TABLE_REFRESH_RATE 0 // seconds 
-    public:
-        ManagerInterfaceService(Table &table, std::shared_ptr<NetworkHandler> networkHandler)
-            : InterfaceService(table, networkHandler) { }
-
-        ~ManagerInterfaceService() = default;
-    
-        void run() override;
-    private:
         static void * startCommandListener(void * param);
 
         void runCommandListener();
 
-        std::string parseInput(std::string cmd);
-
-        std::string processWakeupCmd(std::string hostname);
-
+        std::string parseInputManager(std::string cmd);
+        std::string parseInputParticipant(std::string cmd);
 
         void initializeDisplayTable();
-
         void runDisplayTable();
 
         static void * startDisplayTable(void * param);
         
+        std::string processExitCmd();
+        void sendExitMsg();
+        std::string processWakeupCmd(std::string hostname);
+
         std::vector<Table::Participant> lastSyncParticipants;
         int numParticipants;
-    };
-
-    class ParticipantInterfaceService : public InterfaceService
-    {
-        #define CONNECTION_CHECK_RATE 1
-    public:
-        ParticipantInterfaceService(Table &table, std::shared_ptr<NetworkHandler> networkHandler)
-            : InterfaceService(table, networkHandler) { }
-
-        ~ParticipantInterfaceService() = default;
-    
-        void run() override;
-
-        void stop();
-    private:
-        static void * startCommandListener(void * param);
-
-        void runCommandListener();
-
-        std::string parseInput(std::string cmd);
-
-        std::string processExitCmd();
-
-        void sendExitMsg();
-
-        Table::Participant manager;
+        std::shared_ptr<spdlog::logger> log;            ///< The InterfaceService logger.
+        std::vector<pthread_t> threads;                 ///< The vector of the dedicated threads.
+        Table &participantTable;                        ///< The singleton table.
+        std::shared_ptr<NetworkHandler> inetHandler; ///< The unique network handler.
+        Config config;
+        bool keepRunning;                               /// Indicates the services must keep running.
     };
 
 } // namespace WakeOnLanImpl

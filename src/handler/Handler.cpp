@@ -1,62 +1,74 @@
 #include <../src/handler/Handler.hpp>
 
 namespace WakeOnLanImpl {
-    Handler::~Handler() {
-    }
-
-    Handler::Handler() {}
-
-    ManagerHandler::ManagerHandler(const Config &cfg, Table &t)
+    Handler::Handler(const Config &cfg, Table &t)
             : table(t),
               config(cfg) {
         networkHandler = std::make_shared<NetworkHandler>(4000, config);
         discoveryService = std::make_unique<DiscoveryService>(table, networkHandler);
         monitoringService = std::make_unique<MonitoringService>(table, networkHandler);
-        interfaceService = std::make_unique<ManagerInterfaceService>(table, networkHandler);
+        interfaceService = std::make_unique<InterfaceService>(table, networkHandler);
+        electionService = std::make_unique<ElectionService>(table, networkHandler);
     }
 
-    ManagerHandler::~ManagerHandler() {}
+    Handler::~Handler() {}
 
-    ParticipantHandler::ParticipantHandler(const Config &cfg, WakeOnLanImpl::Table &t)
-            : table(t),
-              config(cfg) {
-        networkHandler = std::make_shared<NetworkHandler>(4000, config);
-        discoveryService = std::make_unique<DiscoveryService>(table, networkHandler);
-        monitoringService = std::make_unique<MonitoringService>(table, networkHandler);
-        interfaceService = std::make_unique<ParticipantInterfaceService>(table, networkHandler);
-    }
-
-    ParticipantHandler::~ParticipantHandler() {}
-
-    void Handler::run() {}
-
-    void Handler::stop() {}
-
-    void ManagerHandler::run() {
+    void Handler::run() {
         interfaceService->run();
         discoveryService->run();
         monitoringService->run();
+        electionService->run();
+
+        active = true;
+        t = std::make_unique<std::thread>([this]() {
+            HandlerType electionResult;
+            auto config = networkHandler->getDeviceConfig();
+            while(active){
+                switch (networkHandler->getGlobalStatus())
+                {
+                case ManagerFailure:
+                    // 1. run an election 
+                    electionResult = electionService->startElection();
+                    // 2. notify services if there is a status change
+                    if (electionResult != config.getHandlerType())
+                    {
+                        config = networkHandler->changeHandlerType(electionResult);
+                        networkHandler->changeStatus(ServiceGlobalStatus::Synchronized);
+
+                        discoveryService->notifyRoleChange();
+                        monitoringService->notifyRoleChange();
+                        interfaceService->notifyRoleChange();
+                    }
+
+                    break;
+                default:
+                    electionResult = electionService->getNewElectionResult();
+                    
+                    if (electionResult != config.getHandlerType())
+                    {
+                        config = networkHandler->changeHandlerType(electionResult);
+                        networkHandler->changeStatus(ServiceGlobalStatus::Synchronized);
+
+                        discoveryService->notifyRoleChange();
+                        monitoringService->notifyRoleChange();
+                        interfaceService->notifyRoleChange();
+                    }
+                    break;
+                }   
+            }
+        });
+
     }
 
-    void ManagerHandler::stop() {
+    void Handler::stop() {
+        active  = false;
+
         networkHandler->stop();
         discoveryService->stop();
         monitoringService->stop();
         interfaceService->stop();
+        electionService->stop();
         sleep(1);
     }
 
-    void ParticipantHandler::run() {
-        interfaceService->run();
-        discoveryService->run();
-        monitoringService->run();
-    }
-
-    void ParticipantHandler::stop() {
-        networkHandler->stop();
-        discoveryService->stop();
-        monitoringService->stop();
-        interfaceService->stop();
-        sleep(1);
-    }
 }
