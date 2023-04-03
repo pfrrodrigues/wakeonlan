@@ -62,6 +62,7 @@ namespace WakeOnLanImpl {
                                     newParticipant.mac = m->mac;
                                     newParticipant.hostname = m->hostname;
                                     newParticipant.status = Table::ParticipantStatus::Unknown;
+                                    newParticipant.electedTimestamp = (char*)"N/A";
 
                                     auto ret = table.insert(newParticipant);
                                     if ( ret.first != 0) {

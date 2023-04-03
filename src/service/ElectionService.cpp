@@ -175,15 +175,21 @@ namespace WakeOnLanImpl {
         std::vector<Table::Participant> participants = table.get_participants_monitoring();
         auto config = inetHandler->getDeviceConfig();
         // if no one else is in the service, adds self
+        auto mtLastWin  = std::chrono::system_clock::now();
+        lastWin = std::chrono::system_clock::to_time_t(mtLastWin);
         if (participants.empty()) { // no one else is in the service --> first entity to join
             // add self to table as manager 
-            Table::Participant self = {
-                .hostname = config.getHostname(),
-                .ip = config.getIpAddress(),
-                .mac = config.getMacAddress(),
-                .status = Table::ParticipantStatus::Manager // first entity on server will be manager
-                // TODO .lastWin = std::time(0); or something like that
-            };
+            Table::Participant self;
+            self.hostname = config.getHostname();
+            self.ip = config.getIpAddress();
+            self.mac = config.getMacAddress();
+            self.status = Table::ParticipantStatus::Manager; // first entity on server will be manager
+            auto mt  = std::chrono::system_clock::now();
+            ::time_t t = std::chrono::system_clock::to_time_t(mt);
+            struct tm * ti = ::gmtime(&t);
+            char buffer[80];
+            ::strftime(buffer, 80, "%d-%m-%Y %H:%M:%S", ti);
+            self.electedTimestamp = buffer;
             table.insert(self);
             return; 
         }
@@ -226,12 +232,30 @@ namespace WakeOnLanImpl {
         std::vector<Table::Participant> possibleWinners;
         int result;
         for(auto p : participants) {
-            result = self.getMacAddress().compare(p.mac);
-            // if (result == 0), we have a draw, as MAC address is unique, assuming it's self
-            // if (result <  0), compared mac address is shorter and will not be included
-            log->info("Comparing your MAC {} to opponents MAC {}. Result was {}.", self.getMacAddress(), p.mac, result);
-            if (result > 0)
-                possibleWinners.push_back(p);                
+            struct std::tm tm{};
+            time_t t;
+            if(p.electedTimestamp == "N/A")
+            {
+                t = 0;
+            }
+            else 
+            {
+                strptime(p.electedTimestamp.c_str(), "%d-%m-%Y %H:%M:%S", &tm);
+                auto electedTime = tm;
+
+                t = ::mktime(&electedTime);
+            }
+            if(lastWin < t)
+                possibleWinners.push_back(p);
+            if(lastWin == t)
+            {
+                result = self.getMacAddress().compare(p.mac);
+                // if (result == 0), we have a draw, as MAC address is unique, assuming it's self
+                // if (result <  0), compared mac address is shorter and will not be included
+                log->info("Comparing your MAC {} to opponents MAC {}. Result was {}.", self.getMacAddress(), p.mac, result);
+                if (result > 0)
+                    possibleWinners.push_back(p);   
+            }             
         }
         return possibleWinners;
     }

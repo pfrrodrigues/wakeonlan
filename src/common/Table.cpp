@@ -58,9 +58,23 @@ namespace WakeOnLanImpl {
         std::lock_guard<std::mutex> lk(tableMutex);
         auto it = data.find(hostname);
         if (it != data.end()) {
-            if(it->second.status != status)
+            if(it->second.status != status && status != ParticipantStatus::Manager)
             {
                 it->second.status = status;
+                updated = true;
+                cv.notify_one();
+                seq++;
+                updateSeqNo = seq;
+            }
+            if(status == ParticipantStatus::Manager)
+            {
+                it->second.status = status;
+                auto mt  = std::chrono::system_clock::now();
+                ::time_t t = std::chrono::system_clock::to_time_t(mt);
+                struct tm * ti = ::gmtime(&t);
+                char buffer[80];
+                ::strftime(buffer, 80, "%d-%m-%Y %H:%M:%S", ti);
+                it->second.electedTimestamp = buffer;
                 updated = true;
                 cv.notify_one();
                 seq++;
