@@ -238,6 +238,7 @@ namespace WakeOnLanImpl {
         for(auto p : participants) {
             struct std::tm tm{};
             time_t t;
+            log->info("Participant timestamp: {}", p.electedTimestamp);
             if(p.electedTimestamp == "N/A")
             {
                 t = 0;
