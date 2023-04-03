@@ -26,6 +26,16 @@ namespace WakeOnLanImpl {
             while(active){
                 switch (networkHandler->getGlobalStatus())
                 {
+                case NotSynchronized:
+                    networkHandler->changeStatus(ServiceGlobalStatus::Synchronized);
+                    if (electionResult != config.getHandlerType())
+                    {
+                        config = networkHandler->changeHandlerType(electionResult);
+                        discoveryService->notifyRoleChange();
+                        monitoringService->notifyRoleChange();
+                        interfaceService->notifyRoleChange();
+                    }
+                    break;
                 case ManagerFailure:
                     // 1. run an election 
                     networkHandler->setManagerIp("");

@@ -236,34 +236,34 @@ namespace WakeOnLanImpl {
         std::vector<Table::Participant> possibleWinners;
         int result;
         for(auto p : participants) {
-            struct std::tm tm{};
-            time_t t;
-            log->info("Participant timestamp: {}", p.electedTimestamp);
-            if(p.electedTimestamp == "N/A")
-            {
-                t = 0;
-            }
-            else 
-            {
-                strptime(p.electedTimestamp.c_str(), "%d-%m-%Y %H:%M:%S", &tm);
-                auto electedTime = tm;
+            // struct std::tm tm{};
+            // time_t t;
+            // log->info("Participant timestamp: {}", p.electedTimestamp);
+            // if(p.electedTimestamp == "N/A")
+            // {
+            //     t = 0;
+            // }
+            // else 
+            // {
+            //     strptime(p.electedTimestamp.c_str(), "%d-%m-%Y %H:%M:%S", &tm);
+            //     auto electedTime = tm;
 
-                t = ::mktime(&electedTime);
-            }
-            if(lastWin < t && p.ip != self.getIpAddress())
-            {
-                log->info("Participant {} has bigger timestamp", p.hostname);
-                possibleWinners.push_back(p);
-            }
-            else if(lastWin == t)
-            {
+            //     t = ::mktime(&electedTime);
+            // }
+            // if(lastWin < t && p.ip != self.getIpAddress())
+            // {
+            //     log->info("Participant {} has bigger timestamp", p.hostname);
+            //     possibleWinners.push_back(p);
+            // }
+            // else if(lastWin == t)
+            // {
                 result = self.getIpAddress().compare(p.ip);
                 // if (result == 0), we have a draw, as MAC address is unique, assuming it's self
                 // if (result <  0), compared mac address is shorter and will not be included
                 log->info("Comparing your IP {} to opponents IP {}. Result was {}.", self.getIpAddress(), p.ip, result);
                 if (result < 0)
                     possibleWinners.push_back(p);   
-            }             
+            // }             
         }
         return possibleWinners;
     }

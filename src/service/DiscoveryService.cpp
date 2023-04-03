@@ -38,18 +38,25 @@ namespace WakeOnLanImpl {
                 if (inetHandler->getGlobalStatus() == Synchronized) {
                     /* Sent a broadcast packet each 10 seconds */
                     if (lastTimestamp < (std::time(nullptr) - WAKEONLAN_DISCOVERY_REQUEST_WINDOW)) {
-                        Message broadcastMsg{};
-                        broadcastMsg.type = WakeOnLanImpl::Type::SleepServiceDiscovery;
-                        broadcastMsg.msgSeqNum = WAKEONLAN_SYN;
-                        bzero(broadcastMsg.hostname, sizeof(broadcastMsg.hostname));
-                        bzero(broadcastMsg.ip, sizeof(broadcastMsg.ip));
-                        bzero(broadcastMsg.mac, sizeof(broadcastMsg.mac));
-                        strncpy(broadcastMsg.hostname, config.getHostname().c_str(), config.getHostname().size());
-                        strncpy(broadcastMsg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
-                        strncpy(broadcastMsg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
-                        inetHandler->send(broadcastMsg, WAKEONLAN_BROADCAST_ADDRESS);
+                        if(lastTimestamp - (std::time(nullptr) - WAKEONLAN_DISCOVERY_REQUEST_WINDOW) > 2)
+                        {
+                            log->info("Probably fell asleep");
+                            inetHandler->changeStatus(ServiceGlobalStatus::NotSynchronized);
+                        }
+                        else{
+                            Message broadcastMsg{};
+                            broadcastMsg.type = WakeOnLanImpl::Type::SleepServiceDiscovery;
+                            broadcastMsg.msgSeqNum = WAKEONLAN_SYN;
+                            bzero(broadcastMsg.hostname, sizeof(broadcastMsg.hostname));
+                            bzero(broadcastMsg.ip, sizeof(broadcastMsg.ip));
+                            bzero(broadcastMsg.mac, sizeof(broadcastMsg.mac));
+                            strncpy(broadcastMsg.hostname, config.getHostname().c_str(), config.getHostname().size());
+                            strncpy(broadcastMsg.ip, config.getIpAddress().c_str(), config.getIpAddress().size());
+                            strncpy(broadcastMsg.mac, config.getMacAddress().c_str(), config.getMacAddress().size());
+                            inetHandler->send(broadcastMsg, WAKEONLAN_BROADCAST_ADDRESS);
 
-                        lastTimestamp = std::time(nullptr);
+                            lastTimestamp = std::time(nullptr);
+                        }
                     }
 
                     m = inetHandler->getFromDiscoveryQueue();
