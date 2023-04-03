@@ -125,6 +125,7 @@ namespace WakeOnLanImpl {
             while(active)
             {
                 status = inetHandler->getGlobalStatus();
+                msg = inetHandler->getFromMonitoringQueue();
                 switch (status)
                 {
                 // has to wait 35s for a sleep status request message or else 
@@ -153,7 +154,6 @@ namespace WakeOnLanImpl {
                         }
                         break;
                     }
-                    msg = inetHandler->getFromMonitoringQueue();
                     if(msg && msg->ip == inetHandler->getManagerIp())
                     {
                         switch (msg->type) {

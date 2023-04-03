@@ -42,6 +42,7 @@ namespace WakeOnLanImpl {
                         if(lastTimestamp > 0 && (std::time(nullptr) - (lastTimestamp + WAKEONLAN_DISCOVERY_REQUEST_WINDOW)) > 2)
                         {
                             log->info("Probably fell asleep");
+                            lastTimestamp = std::time(nullptr);
                             inetHandler->changeStatus(ServiceGlobalStatus::NotSynchronized);
                         }
                         else{
