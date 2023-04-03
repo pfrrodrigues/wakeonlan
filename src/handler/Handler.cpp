@@ -28,6 +28,7 @@ namespace WakeOnLanImpl {
                 {
                 case ManagerFailure:
                     // 1. run an election 
+                    networkHandler->setManagerIp("");
                     electionResult = electionService->startElection();
                     while (!electionService->isElectionOver()){ }
                     

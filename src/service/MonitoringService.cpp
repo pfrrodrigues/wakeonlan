@@ -72,7 +72,7 @@ namespace WakeOnLanImpl {
                     {
                         // sleeping_participants is initialized with every participant
                         // currently in the table
-                        if (participant.status != Table::ParticipantStatus::Manager) {
+                        if (participant.ip != config.getIpAddress()) {
                             sleeping_participants.push_back(participant.hostname);
                             Message message = getSleepStatusRequest(seq);
                             inetHandler->send(message, participant.ip);
