@@ -32,11 +32,10 @@ namespace WakeOnLanImpl {
                     while (!electionService->isElectionOver()){ }
                     
                     // 2. notify services if there is a status change
+                    networkHandler->changeStatus(ServiceGlobalStatus::Synchronized);
                     if (electionResult != config.getHandlerType())
                     {
                         config = networkHandler->changeHandlerType(electionResult);
-                        networkHandler->changeStatus(ServiceGlobalStatus::Synchronized);
-
                         discoveryService->notifyRoleChange();
                         monitoringService->notifyRoleChange();
                         interfaceService->notifyRoleChange();
