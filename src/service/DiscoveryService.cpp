@@ -12,7 +12,7 @@ namespace WakeOnLanImpl {
         : table(t),
         inetHandler(nh),
         active(false),
-        lastTimestamp(std::time(nullptr))
+        lastTimestamp(0)
     {}
 
     DiscoveryService::~DiscoveryService() {
