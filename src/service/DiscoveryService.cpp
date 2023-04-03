@@ -88,20 +88,20 @@ namespace WakeOnLanImpl {
                                     }
                                 }
                                          // SYNC message                  // sender's mac is different from self's
-                                else if (m->msgSeqNum == WAKEONLAN_SYN && config.getMacAddress().compare(m->mac) != 0) { 
-                                    log->info("Two managers online. Declaring manager failure.");
-                                    Table::Participant p;
-                                    p.ip = m->ip;
-                                    p.mac = m->mac;
-                                    p.hostname = m->hostname;
-                                    p.status = Table::ParticipantStatus::Manager;
-                                    auto ret = table.insert(p);
-                                    if (ret.first) {
-                                        log->info("Concurrent manager added to group [Hostname={}, IP={}, MAC={}]",
-                                                  m->hostname, m->ip,m->mac);
-                                    }
-                                    inetHandler->changeStatus(ManagerFailure);
-                                }
+                                // else if (m->msgSeqNum == WAKEONLAN_SYN && config.getMacAddress().compare(m->mac) != 0) { 
+                                //     log->info("Two managers online. Declaring manager failure.");
+                                //     Table::Participant p;
+                                //     p.ip = m->ip;
+                                //     p.mac = m->mac;
+                                //     p.hostname = m->hostname;
+                                //     p.status = Table::ParticipantStatus::Manager;
+                                //     auto ret = table.insert(p);
+                                //     if (ret.first) {
+                                //         log->info("Concurrent manager added to group [Hostname={}, IP={}, MAC={}]",
+                                //                   m->hostname, m->ip,m->mac);
+                                //     }
+                                //     inetHandler->changeStatus(ManagerFailure);
+                                // }
                                 break;
                             case Type::SleepServiceExit:
                             {
