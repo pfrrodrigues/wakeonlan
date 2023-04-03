@@ -243,6 +243,10 @@ namespace WakeOnLanImpl {
                     return "Unknown";
                 case ManagerFailure:
                     return "ManagerFailure";
+                case NotSynchronized:
+                    return "NotSynchronized";
+                default:
+                    return "NOT IMPLEMENTED";
             }
         }());
     }
