@@ -115,7 +115,7 @@ namespace WakeOnLanImpl {
                              log->info("Sending a MULTICAST message to the group [seq={} no_entries={}]", multicastMsg.msgSeqNum, noEntries);
                              for (auto & member : ret.second) {
                                  if (member.status != Table::ParticipantStatus::Manager
-                                     || member.status != Table::ParticipantStatus::Unknown) {
+                                     && member.status != Table::ParticipantStatus::Unknown) {
                                      inetHandler->send(multicastMsg, member.ip);
                                      log->info("Sent a TableUpdate UNICAST message to {}", member.ip);
                                  }
