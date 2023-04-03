@@ -141,10 +141,19 @@ namespace WakeOnLanImpl {
                     }
                     if(timestamp + 17 < std::time(nullptr))
                     {
-                        inetHandler->changeStatus(ServiceGlobalStatus::WaitingForSync);
-                        timerSet = false;
-                        // std::cout << "Timed out waiting for sleep status request, waiting new discovery msg" << std::endl;
-                        log->info("Participant timedout waiting for sleep status request. Waiting for new sleep service discovery message");
+                        if(std::time(nullptr) - (timestamp + 17) > 1 ) {
+                            // participante provavelmente dormiu
+                            timestamp = std::time(nullptr);
+                            timerSet = true;
+                            log->info("Participant has probably slept");
+                        }
+                        else
+                        {
+                            inetHandler->changeStatus(ServiceGlobalStatus::WaitingForSync);
+                            timerSet = false;
+                            // std::cout << "Timed out waiting for sleep status request, waiting new discovery msg" << std::endl;
+                            log->info("Participant timedout waiting for sleep status request. Waiting for new sleep service discovery message");
+                        }
                         break;
                     }
                     msg = inetHandler->getFromMonitoringQueue();
