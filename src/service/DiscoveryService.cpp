@@ -38,7 +38,7 @@ namespace WakeOnLanImpl {
                 if (inetHandler->getGlobalStatus() == Synchronized) {
                     /* Sent a broadcast packet each 10 seconds */
                     if (lastTimestamp < (std::time(nullptr) - WAKEONLAN_DISCOVERY_REQUEST_WINDOW)) {
-                        if(lastTimestamp - (std::time(nullptr) - WAKEONLAN_DISCOVERY_REQUEST_WINDOW) > 2)
+                        if((std::time(nullptr) - (lastTimestamp + WAKEONLAN_DISCOVERY_REQUEST_WINDOW)) > 2)
                         {
                             log->info("Probably fell asleep");
                             inetHandler->changeStatus(ServiceGlobalStatus::NotSynchronized);
