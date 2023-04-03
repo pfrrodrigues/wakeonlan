@@ -142,6 +142,8 @@ namespace WakeOnLanImpl {
         // if no answer was received, you won!
         if(ongoingElectionAnswered)
             return HandlerType::Participant;
+        
+        log->info("No answer to election messages");
         return HandlerType::Manager;
     }
 

@@ -73,6 +73,7 @@ namespace WakeOnLanImpl {
         std::lock_guard<std::mutex> lk(inetMutex);
         UdpSocket socket(ip, SERVICE_PORT);
         socket.send(message);
+        socket.closeSocket();
         return true;
     }
     
@@ -222,6 +223,7 @@ namespace WakeOnLanImpl {
             buffer.append(hex_mac);
 
         socket.sendMagicPacket(buffer.c_str());
+        socket.closeSocket();
         return true;
     }
 
