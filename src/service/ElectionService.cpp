@@ -249,7 +249,7 @@ namespace WakeOnLanImpl {
 
                 t = ::mktime(&electedTime);
             }
-            if(lastWin < t)
+            if(lastWin < t && p.ip != self.getIpAddress())
             {
                 log->info("Participant {} has bigger timestamp", p.hostname);
                 possibleWinners.push_back(p);
@@ -260,7 +260,7 @@ namespace WakeOnLanImpl {
                 // if (result == 0), we have a draw, as MAC address is unique, assuming it's self
                 // if (result <  0), compared mac address is shorter and will not be included
                 log->info("Comparing your IP {} to opponents IP {}. Result was {}.", self.getIpAddress(), p.ip, result);
-                if (result > 0)
+                if (result < 0)
                     possibleWinners.push_back(p);   
             }             
         }
