@@ -49,6 +49,8 @@ namespace WakeOnLan {
          * @returns A enum containing the handler type.
          */
         HandlerType getHandlerType() const;
+
+        void setHandlerType(HandlerType ht);
     private:
         HandlerType handlerType; ///< The configured handler type. Default is Participant.
         std::string hostname;    ///< The hostname of the local host.
