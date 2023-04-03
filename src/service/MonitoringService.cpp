@@ -153,11 +153,12 @@ namespace WakeOnLanImpl {
                     sleeping_participants.erase(std::find(sleeping_participants.begin(),
                                                           sleeping_participants.end(),
                                                           hostname));
-                    if ( ret.first ) {
+                    if ( ret.first != 0 ) {
                         /**
                         * Send multicast message
                         */
                         log->info("Member {} have its status changed to AWAKEN", hostname);
+                        sleep(1);
                         Message multicastMsg{};
                         multicastMsg.type = Type::TableUpdate;
                         multicastMsg.msgSeqNum = ret.first;
@@ -211,7 +212,7 @@ namespace WakeOnLanImpl {
                         log->info("Sending a MULTICAST message to the group [seq={} no_entries={}]", multicastMsg.msgSeqNum, noEntries);
                         for (auto & member : ret.second) {
                             if (member.status != Table::ParticipantStatus::Manager
-                                || member.status != Table::ParticipantStatus::Unknown) {
+                                && member.status != Table::ParticipantStatus::Unknown) {
                                 inetHandler->send(multicastMsg, member.ip);
                                 log->info("Sent a TableUpdate UNICAST message to {}", member.ip);
                             }
@@ -283,63 +284,65 @@ namespace WakeOnLanImpl {
                             }
                             case Type::TableUpdate: // isso vai no participant
                             {
-                                TableUpdateHeader header{};
-                                size_t offset = 0;
-                                char tmstmp[80];
-                                char hostname[150];
-                                char ip[150];
-                                char mac[17];
+                                if (status == Synchronized) {
+                                    TableUpdateHeader header{};
+                                    size_t offset = 0;
+                                    char tmstmp[80];
+                                    char hostname[150];
+                                    char ip[150];
+                                    char mac[17];
 
-                                header = *(reinterpret_cast<TableUpdateHeader*>(msg->data));
-                                offset += sizeof(TableUpdateHeader);
-                                log->info("Received TableUpdate [ seq_no={} no_entries={} ]", msg->msgSeqNum, (int)header.noEntries);
+                                    header = *(reinterpret_cast<TableUpdateHeader*>(msg->data));
+                                    offset += sizeof(TableUpdateHeader);
+                                    log->info("Received TableUpdate [ seq_no={} no_entries={} ]", msg->msgSeqNum, (int)header.noEntries);
 
-                                std::vector<Table::Participant> table;
-                                for (int i=0; i < header.noEntries; i++) {
-                                    bzero(tmstmp, WAKEONLAN_FIELD_TIMESTAMP_SIZE);
-                                    bzero(hostname, WAKEONLAN_FIELD_HOSTNAME_SIZE);
-                                    bzero(ip, WAKEONLAN_FIELD_IP_SIZE);
-                                    bzero(mac, WAKEONLAN_FIELD_MAC_SIZE);
+                                    std::vector<Table::Participant> table;
+                                    for (int i=0; i < header.noEntries; i++) {
+                                        bzero(tmstmp, WAKEONLAN_FIELD_TIMESTAMP_SIZE);
+                                        bzero(hostname, WAKEONLAN_FIELD_HOSTNAME_SIZE);
+                                        bzero(ip, WAKEONLAN_FIELD_IP_SIZE);
+                                        bzero(mac, WAKEONLAN_FIELD_MAC_SIZE);
 
-                                    strncpy(tmstmp, &msg->data[offset], WAKEONLAN_FIELD_TIMESTAMP_SIZE);
-                                    offset += WAKEONLAN_FIELD_TIMESTAMP_SIZE;
-                                    memcpy(hostname, &msg->data[offset], WAKEONLAN_FIELD_HOSTNAME_SIZE);
-                                    offset += WAKEONLAN_FIELD_HOSTNAME_SIZE;
-                                    strncpy(ip, &msg->data[offset], WAKEONLAN_FIELD_IP_SIZE);
-                                    offset += WAKEONLAN_FIELD_IP_SIZE;
-                                    strncpy(mac, &msg->data[offset], WAKEONLAN_FIELD_MAC_SIZE);
-                                    offset += WAKEONLAN_FIELD_MAC_SIZE;
+                                        strncpy(tmstmp, &msg->data[offset], WAKEONLAN_FIELD_TIMESTAMP_SIZE);
+                                        offset += WAKEONLAN_FIELD_TIMESTAMP_SIZE;
+                                        memcpy(hostname, &msg->data[offset], WAKEONLAN_FIELD_HOSTNAME_SIZE);
+                                        offset += WAKEONLAN_FIELD_HOSTNAME_SIZE;
+                                        strncpy(ip, &msg->data[offset], WAKEONLAN_FIELD_IP_SIZE);
+                                        offset += WAKEONLAN_FIELD_IP_SIZE;
+                                        strncpy(mac, &msg->data[offset], WAKEONLAN_FIELD_MAC_SIZE);
+                                        offset += WAKEONLAN_FIELD_MAC_SIZE;
 
-                                    char s;
-                                    strncpy(&s, &msg->data[offset], WAKEONLAN_FIELD_STATUS_SIZE);
-                                    uint8_t status = (int)s;
-                                    offset += WAKEONLAN_FIELD_STATUS_SIZE;
+                                        char s;
+                                        strncpy(&s, &msg->data[offset], WAKEONLAN_FIELD_STATUS_SIZE);
+                                        uint8_t status = (int)s;
+                                        offset += WAKEONLAN_FIELD_STATUS_SIZE;
 
-                                    Table::Participant member;
-                                    member.electedTimestamp = tmstmp;
-                                    member.hostname = hostname;
-                                    member.ip = ip;
-                                    member.mac = mac;
-                                    switch (status) {
-                                        case 0:
-                                            member.status = Table::ParticipantStatus::Awaken;
-                                            break;
-                                        case 1:
-                                            member.status = Table::ParticipantStatus::Sleeping;
-                                            break;
-                                        case 2:
-                                            member.status = Table::ParticipantStatus::Unknown;
-                                            break;
-                                        case 3:
-                                            member.status = Table::ParticipantStatus::Manager;
-                                            break;
-                                        default:
-                                            break;
+                                        Table::Participant member;
+                                        member.electedTimestamp = tmstmp;
+                                        member.hostname = hostname;
+                                        member.ip = ip;
+                                        member.mac = mac;
+                                        switch (status) {
+                                            case 0:
+                                                member.status = Table::ParticipantStatus::Awaken;
+                                                break;
+                                            case 1:
+                                                member.status = Table::ParticipantStatus::Sleeping;
+                                                break;
+                                            case 2:
+                                                member.status = Table::ParticipantStatus::Unknown;
+                                                break;
+                                            case 3:
+                                                member.status = Table::ParticipantStatus::Manager;
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        table.push_back(member);
                                     }
-                                    table.push_back(member);
+                                    if (this->table.transaction(msg->msgSeqNum, table))
+                                        log->info("Processed transaction {}", msg->msgSeqNum);
                                 }
-                                if (this->table.transaction(msg->msgSeqNum, table))
-                                    log->info("Processed transaction {}", msg->msgSeqNum);
                             }
                             break;
                         }
