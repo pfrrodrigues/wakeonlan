@@ -29,7 +29,7 @@ namespace WakeOnLanImpl {
         active = true;
         t = std::make_unique<std::thread>([this](){
             auto config = inetHandler->getDeviceConfig();
-            lastTimestamp = std::time(nullptr) + WAKEONLAN_DISCOVERY_REQUEST_WINDOW;
+            lastTimestamp = std::time(nullptr) - WAKEONLAN_DISCOVERY_REQUEST_WINDOW;
             while (active) {
                 Message *m;
                 if (inetHandler->getGlobalStatus() == Unknown) {
