@@ -1,32 +1,39 @@
 # wakeonlan
 A friendly C++ library for managing and ingress on Wake-on-LAN groups.
 
-## Platforms
-* Linux
+## Minimum Dependencies
+* CMake 3.5.1
+* C++ 14
+* GCC 5.5.0
+* Linux environment supporting the POSIX standard
 
 ## Cloning Repository and Building the library
-```console
+```bash
 $ git clone git@github.com:pfrrodrigues/wakeonlan.git --recurse-submodules
 $ cd wakeonlan
 $ mkdir build && cd build
-$ cmake .. && make
+$ cmake .. && make -j 2
 ```
 
 Optionally, you can set the build type of your preference:
-```console
+```bash
 $ cmake -DCMAKE_BUILD_TYPE=Release .. && make
 ```
 or
-```console
+```bash
 $ cmake -DCMAKE_BUILD_TYPE=Debug .. && make
 ```
 
-After execute one of the above commands both shared and static API libraries will
-be available on the build directory.
+After execute one of the above commands a shared API library will
+be available on the build directory for use.
 
 ## Getting started
 CMakeLists.txt generates a basic example application (wolapp) for users start 
-exploring the wakeonlan API.
+exploring the Wake-on-LAN API. In order to run it, one can just execute the application found on
+the generated build directory.
+```bash
+$ ./wolapp
+```
 
 ### Example Application
 ```c++
@@ -41,7 +48,7 @@ void signalHandler(int signum) {
     quit = true;
 }
 
-void terminate() { 
+void terminate() {
     pid_t pid = getpid();
     std::string killCmd("kill ");
     killCmd.append(std::to_string(pid));
@@ -51,10 +58,9 @@ void terminate() {
 int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
     /*************************************
-    * Setting up the API configuration
+    * API configuration
     *************************************/
-    const int argSize = argc - 1;
-    WakeOnLan::Config config(&argv[1], argSize);
+    WakeOnLan::Config config;
 
     /*************************************
     * API instantiation
@@ -72,26 +78,12 @@ int main(int argc, char** argv) {
 ```
 
 ### API configuration
-In order to configure the API, the Config struct is needed. This struct is
-responsible for receiving on its constructor parameters to define the 
-handler type and the local host interface to use for receiving the service 
-incoming packets.
+In order to start the API, the Config struct is needed. This struct is
+responsible for internally finds out the local host interface to use for receiving
+incoming packets and for setting up the device configuration needed to run the service.
 
-The Config struct constructor has an internal parser that expects receiving a
-char** type with one or two strings and quantity equals 1 or 2, respectively. For 
-define handler type equal Participant, user must pass to the first parameter a char** (char*[1]) 
-with just the string corresponding to the local host interface and pass to the second 
-parameter an integer equal to 1. For defining a handler type equal to Manager, user 
-must pass a char** (char*[2]) with the first string equals 'manager' and the second 
-string equal to the local host interface to be used. The second constructor parameter 
-must be 2, corresponding to the quantity of strings.
-
-
-In the example, user specify the parameters through the program arguments. 
-Then, argc and argv variables of the program are used to create the Config struct.
 ```c++
-const int argSize = argc - 1;
-WakeOnLan::Config config(&argv[1], argSize);
+WakeOnLan::Config config;
 ```
 
 The Config struct provides a set of functions for user checks if the configuration was constructed correctly.
@@ -100,16 +92,6 @@ The Config struct provides a set of functions for user checks if the configurati
 * _getIpAddress()_ - Gets the local host IP address.
 * _getMacAddress()_ - Gets the local host MAC address.
 * _getHandlerType()_ - Gets the API handler type.
-
-Run the program for set the internal handler type equal Manager as below:
-```bash
-$ ./wolapp manager eth0
-```
-
-Or for the participant:
-```bash
-$ ./wolapp eth0
-```
 
 ### API instantiation
 Once a Config object is created users can create a ApiInstance object to instantiate the API.
